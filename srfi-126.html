@@ -35,9 +35,8 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li>Support for weak and ephemeral hashtables.</li>
 <li>A triplet of <code>alist-&gt;hashtable</code> constructors.</li>
 <li>The procedures <code>hashtable-lookup</code> and <code>hashtable-intern!</code>.</li>
-<li>A <code>hashtable-for-each</code> procedure.</li>
 <li>Addition of the missing <code>hashtable-values</code> procedure.</li>
-<li>The procedures <code>hashtable-fold</code> and <code>hashtable-map-&gt;list</code>.</li>
+<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-fold</code> and <code>hashtable-map-&gt;list</code>.</li>
 <li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-&gt;alist</code>.</li>
 </ul>
 <h2 id="specification">Specification</h2>
@@ -146,10 +145,6 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>Removes all associations from <code>hashtable</code> and returns unspecified values.</p>
 <p>If <code>k</code> is provided and not <code>#f</code>, the current capacity of the hashtable is reset to approximately <code>k</code> elements.</p>
 <ul>
-<li><code>(hashtable-for-each proc hashtable)</code> (procedure)</li>
-</ul>
-<p><code>Proc</code> should accept two arguments, and should not mutate <code>hashtable</code>. The <code>hashtable-for-each</code> procedure applies <code>proc</code> once for every entry in <code>hashtable</code>, passing it the key and value of the entry as arguments. The order in which <code>proc</code> is applied to the entries is unspecified.</p>
-<ul>
 <li><code>(hashtable-keys hashtable)</code> (procedure)</li>
 </ul>
 <p>Returns a vector of all keys in <code>hashtable</code>. The order of the vector is unspecified.</p>
@@ -161,13 +156,11 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(hashtable-entries hashtable)</code> (procedure)</li>
 </ul>
 <p>Returns two values, a vector of the keys in <code>hashtable</code>, and a vector of the corresponding values.</p>
-<pre><code>(let ((h (make-eqv-hashtable)))
-  (hashtable-set! h 1 &#39;one)
-  (hashtable-set! h 2 &#39;two)
-  (hashtable-set! h 3 &#39;three)
-  (hashtable-entries h))
-  ‌‌    ⇒ #(1 2 3) #(one two three)  ; two return values</code></pre>
 <p><em>Rationale:</em> Returning the keys and values as vectors allows for greater locality and less allocation than if they were returned as lists.</p>
+<ul>
+<li><code>(hashtable-for-each proc hashtable)</code> (procedure)</li>
+</ul>
+<p><code>Proc</code> should accept two arguments, and should not mutate <code>hashtable</code>. The <code>hashtable-for-each</code> procedure applies <code>proc</code> once for every entry in <code>hashtable</code>, passing it the key and value of the entry as arguments. The order in which <code>proc</code> is applied to the entries is unspecified.</p>
 <ul>
 <li><code>(hashtable-fold proc init hashtable)</code> (procedure)</li>
 </ul>

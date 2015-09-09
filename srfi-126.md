@@ -74,9 +74,9 @@ may be summarized as follows:
 - Support for weak and ephemeral hashtables.
 - A triplet of `alist->hashtable` constructors.
 - The procedures `hashtable-lookup` and `hashtable-intern!`.
-- A `hashtable-for-each` procedure.
 - Addition of the missing `hashtable-values` procedure.
-- The procedures `hashtable-fold` and `hashtable-map->list`.
+- The procedures `hashtable-for-each`, `hashtable-fold` and
+  `hashtable-map->list`.
 - The procedures `hashtable-key-list`, `hashtable-value-list`, and
   `hashtable->alist`.
 
@@ -293,14 +293,6 @@ values.
 If `k` is provided and not `#f`, the current capacity of the hashtable
 is reset to approximately `k` elements.
 
-- `(hashtable-for-each proc hashtable)` (procedure)
-
-`Proc` should accept two arguments, and should not mutate `hashtable`.
-The `hashtable-for-each` procedure applies `proc` once for every entry
-in `hashtable`, passing it the key and value of the entry as
-arguments.  The order in which `proc` is applied to the entries is
-unspecified.
-
 - `(hashtable-keys hashtable)` (procedure)
 
 Returns a vector of all keys in `hashtable`.  The order of the vector
@@ -317,21 +309,22 @@ keys in the result of `hashtable-keys`.
 Returns two values, a vector of the keys in `hashtable`, and a vector
 of the corresponding values.
 
-    (let ((h (make-eqv-hashtable)))
-      (hashtable-set! h 1 'one)
-      (hashtable-set! h 2 'two)
-      (hashtable-set! h 3 'three)
-      (hashtable-entries h))
-      ‌‌    ⇒ #(1 2 3) #(one two three)  ; two return values
-
 *Rationale:* Returning the keys and values as vectors allows for
 greater locality and less allocation than if they were returned as
 lists.
 
+- `(hashtable-for-each proc hashtable)` (procedure)
+
+`Proc` should accept two arguments, and should not mutate `hashtable`.
+The `hashtable-for-each` procedure applies `proc` once for every entry
+in `hashtable`, passing it the key and value of the entry as
+arguments.  The order in which `proc` is applied to the entries is
+unspecified.
+
 - `(hashtable-fold proc init hashtable)` (procedure)
 
-`Proc` should accept three arguments, should return a single value, and
-should not mutate `hashtable`.  The `hashtable-fold` procedure
+`Proc` should accept three arguments, should return a single value,
+and should not mutate `hashtable`.  The `hashtable-fold` procedure
 accumulates a result by applying `proc` once for every entry in
 `hashtable`, passing it as arguments the key and value of the entry
 and the result of the previous application, or `init` at the first
