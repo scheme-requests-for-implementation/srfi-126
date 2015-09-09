@@ -37,7 +37,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li>The procedures <code>hashtable-lookup</code> and <code>hashtable-intern!</code>.</li>
 <li>A <code>hashtable-for-each</code> procedure.</li>
 <li>Addition of the missing <code>hashtable-values</code> procedure.</li>
-<li>A <code>hashtable-fold</code> procedure.</li>
+<li>The procedures <code>hashtable-fold</code> and <code>hashtable-map-&gt;list</code>.</li>
 <li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-&gt;alist</code>.</li>
 </ul>
 <h2 id="specification">Specification</h2>
@@ -172,6 +172,10 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(hashtable-fold proc init hashtable)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept three arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-fold</code> procedure accumulates a result by applying <code>proc</code> once for every entry in <code>hashtable</code>, passing it as arguments the key and value of the entry and the result of the previous application, or <code>init</code> at the first application. The order in which <code>proc</code> is applied to the entries is unspecified.</p>
+<ul>
+<li><code>(hashtable-map-&gt;list proc hashtable)</code> (procedure)</li>
+</ul>
+<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map-&gt;list</code> procedure applies <code>proc</code> to every key and value in <code>hashtable</code> and returns the returned values as a list. The order in which <code>proc</code> is applied to the entries is unspecified.</p>
 <ul>
 <li><code>(hashtable-key-list hashtable)</code> (procedure)</li>
 </ul>

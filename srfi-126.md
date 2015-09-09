@@ -76,7 +76,7 @@ may be summarized as follows:
 - The procedures `hashtable-lookup` and `hashtable-intern!`.
 - A `hashtable-for-each` procedure.
 - Addition of the missing `hashtable-values` procedure.
-- A `hashtable-fold` procedure.
+- The procedures `hashtable-fold` and `hashtable-map->list`.
 - The procedures `hashtable-key-list`, `hashtable-value-list`, and
   `hashtable->alist`.
 
@@ -337,6 +337,14 @@ accumulates a result by applying `proc` once for every entry in
 and the result of the previous application, or `init` at the first
 application.  The order in which `proc` is applied to the entries is
 unspecified.
+
+- `(hashtable-map->list proc hashtable)` (procedure)
+
+`Proc` should accept two arguments, should return a single value, and
+should not mutate `hashtable`.  The `hashtable-map->list` procedure
+applies `proc` to every key and value in `hashtable` and returns the
+returned values as a list.  The order in which `proc` is applied to
+the entries is unspecified.
 
 - `(hashtable-key-list hashtable)` (procedure)
 
