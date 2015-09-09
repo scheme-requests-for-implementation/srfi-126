@@ -454,8 +454,9 @@ Returns an integer hash value for `symbol`.
 Implementation
 --------------
 
-The source tree of Larceny Scheme contains a portable implementation
-of the R6RS hashtables API as an R7RS library.
+Larceny Scheme contains a portable implementation of the R6RS
+hashtables API as an R7RS library.  It is included in the version
+control repository of this SRFI.
 
 The alist constructors can be implemented trivially as seen in the
 piece of code describing their semantics.  Here is a complete
@@ -517,8 +518,7 @@ Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the
 platform level, or by using functionality which in turn needs to be
 implemented at the platform level, such as weak and ephemeral pairs.
-
-For these reasons, a full sample implementation is not provided.
+See MIT/GNU Scheme for an example.
 
 
 Acknowledgments

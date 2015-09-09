@@ -226,7 +226,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p>Returns an integer hash value for <code>symbol</code>.</p>
 <h2 id="implementation">Implementation</h2>
-<p>The source tree of Larceny Scheme contains a portable implementation of the R6RS hashtables API as an R7RS library.</p>
+<p>Larceny Scheme contains a portable implementation of the R6RS hashtables API as an R7RS library. It is included in the version control repository of this SRFI.</p>
 <p>The alist constructors can be implemented trivially as seen in the piece of code describing their semantics. Here is a complete definition of <code>alist-&gt;eq-hashtable</code>:</p>
 <pre><code>(define alist-&gt;eq-hashtable
   (case-lambda
@@ -266,8 +266,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 
 (define (hashtable-&gt;alist ht)
   (hashtable-map-&gt;list cons ht))</code></pre>
-<p>Weak and ephemeral hashtables cannot be implemented by portable library code. They need to be implemented either directly at the platform level, or by using functionality which in turn needs to be implemented at the platform level, such as weak and ephemeral pairs.</p>
-<p>For these reasons, a full sample implementation is not provided.</p>
+<p>Weak and ephemeral hashtables cannot be implemented by portable library code. They need to be implemented either directly at the platform level, or by using functionality which in turn needs to be implemented at the platform level, such as weak and ephemeral pairs. See MIT/GNU Scheme for an example.</p>
 <h2 id="acknowledgments">Acknowledgments</h2>
 <p>Thanks to Taylor Campbell and MIT/GNU Scheme for inspiring the idea of weak and ephemeral hashtables, some miscellaneous procedures, and overall input in the design of this SRFI.</p>
 <h2 id="copyright-and-license">Copyright and license</h2>
