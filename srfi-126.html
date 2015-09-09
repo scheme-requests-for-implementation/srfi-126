@@ -10,7 +10,9 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
-<h1 id="r6rs-based-hashtables">R6RS-based hashtables</h1>
+<div id="header">
+<h1 class="title">R6RS-based hashtables</h1>
+</div>
 <h2 id="author">Author</h2>
 <p>Taylan Ulrich Bayırlı/Kammer, taylanbayirli at Google Mail</p>
 <h2 id="status">Status</h2>
@@ -18,33 +20,33 @@
 schemers dot org">srfi-126@<span
 class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the list, follow <a href="http://srfi.schemers.org/srfi-list-subscribe.html">these instructions</a>. You can access previous messages via the mailing list <a href="http://srfi-email.schemers.org/srfi-126">archive</a>.</p>
 <ul>
-  <li>Received: 2015/9/8</li>
-  <li>Draft #1 published: 2015/9/8</li>
+<li>Received: 2015/9/8</li>
+<li>Draft #1 published: 2015/9/8</li>
 </ul>
 <h2 id="abstract">Abstract</h2>
 <p>We provide a hashtable API that takes the R6RS hashtables API as a basis and makes backwards compatible additions such as support for weak hashtables. The API is backwards compatible insofar the R6RS's prohibition of extending the domains of its procedures is not taken seriously.</p>
 <h2 id="rationale">Rationale</h2>
-<p>This specification provides a more conservative alternative to SRFI-125. Instead of inventing a third incompatible hashtable API (SRFI-125 is mostly, but not entirely, backwards compatible with SRFI-69), it builds upon the R6RS hashtables API, with only a few, fully backwards compatible additions, most notably for weak and ephemeral hashtable support.</p>
+<p>This specification provides an alternative to SRFI-125. It builds on the R6RS hashtables API instead of SRFI-69, with only a few, fully backwards compatible additions, most notably for weak and ephemeral hashtable support.</p>
 <p>There is &quot;full&quot; backwards compatibility in the sense that all R6RS hashtable operations within a piece of code that execute without raising exceptions will continue to execute without raising exceptions when the hashtable library in use is changed to an implementation of this specification. On the other hand, R6RS's stark requirement of raising an exception when a procedure's use does not exactly correspond to the description in R6RS (which effectively prohibits extensions to its procedures' semantics) is ignored.</p>
-<p>The R6RS hashtables API is favored over SRFI-69 because the latter contains serious flaws. In particular, exposing the hashing functions for the <code>eq?</code> and <code>eqv?</code> procedures is a hindrance for Scheme implementations with a moving garbage collector. SRFI-125 works around this by removing the <code>hash-table-equivalence-function</code> and <code>hash-table-hash-function</code> procedures from its API entirely, and allowing the hashing function passed to <code>make-hash-table</code> to be ignored by the implementation. R6RS is arguably cleaner, providing dedicated constructors for <code>eq?</code> and <code>eqv?</code> based hashtables, and returning <code>#f</code> when their hashing function is queried.</p>
-<p>This specification also does not depend on SRFI-114 (Comparators), does not specify a spurious amount of utility functions, nor does it describe a bimap API. There is no attempt at supporting thread safety because typical multi-threaded use-cases will most likely involve locking more than just accesses and mutations of hashtables.</p>
+<p>The R6RS hashtables API is favored over SRFI-69 because the latter contains serious flaws. In particular, exposing the hashing functions for the <code>eq?</code> and <code>eqv?</code> procedures is a hindrance for Scheme implementations with a moving garbage collector. SRFI-125 works around this by allowing the user-provided hashing function passed to <code>make-hash-table</code> to be ignored by the implementation, and allowing the <code>hash-table-hash-function</code> procedure to return <code>#f</code> instead of the hashing function passed to <code>make-hash-table</code>. R6RS avoids the issue by providing dedicated constructors for <code>eq?</code> and <code>eqv?</code> based hashtables, and returning <code>#f</code> when their hashing function is queried.</p>
+<p>This specification also does not depend on SRFI-114 (Comparators), does not specify a spurious amount of utility functions, does not describe a bimap API, and does not attempt to specify thread-safety because typical multi-threaded use-cases will most likely involve locking more than just accesses and mutations of hashtables.</p>
 <p>The additions made by this specification to the R6RS hashtables API may be summarized as follows:</p>
 <ul>
 <li>Support for weak and ephemeral hashtables.</li>
 <li>A triplet of <code>alist-&gt;hashtable</code> constructors.</li>
-<li>An extension to the <code>hashtable-ref</code> semantics.</li>
-<li>A <code>hashtable-intern!</code> procedure.</li>
-<li>A <code>hashtable-for-each</code> procedure.</li>
+<li>The procedures <code>hashtable-lookup</code> and <code>hashtable-intern!</code>.</li>
 <li>Addition of the missing <code>hashtable-values</code> procedure.</li>
-<li>A <code>hashtable-fold</code> procedure.</li>
+<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-fold</code> and <code>hashtable-map-&gt;list</code>.</li>
 <li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-&gt;alist</code>.</li>
 </ul>
+<p>Additionally, this specification adheres to the R7RS rule of specifying a single return value for procedures which don't have meaningful return values.</p>
 <h2 id="specification">Specification</h2>
-<p>The <code>(scheme hashtables)</code> library provides a set of operations on hashtables. A hashtable is of a disjoint type that associates keys with values. Any object can be used as a key, provided a hash function and a suitable equivalence function is available. A hash function is a procedure that maps keys to exact integer objects. It is the programmer's responsibility to ensure that the hash function is compatible with the equivalence function, which is a procedure that accepts two keys and returns true if they are equivalent and <code>#f</code> otherwise. Standard hashtables for arbitrary objects based on the <code>eq?</code> and <code>eqv?</code> predicates (see report section on “Equivalence predicates”) are provided. Also, hash functions for arbitrary objects, strings, and symbols are provided.</p>
-<p>Hashtables can store their key, value, or key and value weakly, or ephemerally. Storing an object weakly or ephemerally means that the storage location of the object does not count towards the total storage locations in the program which refer to the object, meaning the object can be reclaimed as soon as no non-weak non-ephemeral storage locations referring to the object remain. When this happens, all entries of the hashtable which have the reclaimed object as their key or value are deleted. Storing either or both of a key and value pair ephemerally means additionally that no references from the value or key towards the key or value respectively count towards the total references of the key or value within the program. For instance, an ephemerally keyed hashtable with an entry mapping an element of a vector to the vector itself may delete said entry when no references remain to the vector nor the element of the vector from outside the vector. If the hashtable were weakly keyed, then the reference to the key from within the vector would protect the key from reclamation, preventing the deletion of the entry even when no references to the key (element) nor value (vector) remained from outside the hashtable.</p>
-<p>An implementation may implement weak hashtables as ephemeral hashtables.</p>
-<p><em>Rationale:</em> While the semantics of weak hashtables is usually undesired, their implementation might be more efficient than ephemeral hashtables.</p>
-<p>Booleans, characters, numbers, and symbols are never stored weakly or ephemerally.</p>
+<p>The <code>(srfi 126)</code> library provides a set of operations on hashtables. A hashtable is of a disjoint type that associates keys with values. Any object can be used as a key, provided a hash function and a suitable equivalence function is available. A hash function is a procedure that maps keys to exact integer objects. It is the programmer's responsibility to ensure that the hash function is compatible with the equivalence function, which is a procedure that accepts two keys and returns true if they are equivalent and <code>#f</code> otherwise. Standard hashtables for arbitrary objects based on the <code>eq?</code> and <code>eqv?</code> predicates (see report section on “Equivalence predicates”) are provided. Also, hash functions for arbitrary objects, strings, and symbols are provided.</p>
+<p>Hashtables can store their key, value, or key and value weakly. Storing an object weakly means that the storage location of the object does not count towards the total storage locations in the program which refer to the object, meaning the object can be reclaimed as soon as no non-weak storage locations referring to the object remain. Weakly stored objects referring to each other in a cycle will be reclaimed as well if none of them are referred to from outside the cycle. When a weakly stored object is reclaimed, associations in the hashtable which have the object as their key or value are deleted.</p>
+<p>Hashtables can also store their key and value in ephemeral storage pairs. The objects in an ephemeral storage pair are stored weakly, but both protected from reclamation as long as there remain non-weak references to the first object from outside the ephemeral storage pair. In particular, an ephemeral-key hashtable (where the keys are the first objects in the ephemeral storage pairs), with an association mapping an element of a vector to the vector itself, may delete said association when no non-weak references remain to the vector nor its element in the rest of the program. If it were a weak-key hashtable, the reference to the key from within the vector would cyclically protect the key and value from reclamation, even when no non-weak references to the key and value remained from outside the hashtable. At the absence of such references between the key and value, ephemeral-key and ephemeral-value hashtables behave effectively equivalent to weak-key and weak-value hashtables.</p>
+<p>An implementation may implement weak-key and weak-value hashtables as ephemeral-key and ephemeral-value hashtables.</p>
+<p><em>Rationale:</em> While the semantics of weak-key and weak-value hashtables is undesired, their implementation might be more efficient than ephemeral-key and ephemeral-value hashtables.</p>
+<p>Ephemeral-key-and-value hashtables use a pair of ephemeral storage pairs for each association: one where the key is the first object and one where the value is. This means that the key and value are protected from reclamation until no references remain to neither the key nor value from outside the hashtable. In contrast, a weak-key-and-value hashtable will delete an association as soon as either the key or value is reclaimed.</p>
 <p>This section uses the hashtable parameter name for arguments that must be hashtables, and the key parameter name for arguments that must be hashtable keys.</p>
 <h3 id="constructors">Constructors</h3>
 <ul>
@@ -59,6 +61,8 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(make-eqv-hashtable k weakness)</code></li>
 </ul>
 <p>Returns a newly allocated mutable hashtable that accepts arbitrary objects as keys, and compares those keys with <code>eqv?</code>. The semantics of the optional arguments are as in <code>make-eq-hashtable</code>.</p>
+<p>Booleans, characters, numbers, and symbols are never stored weakly or ephemerally in a hashtable returned by <code>make-eqv-hashtable</code>, regardless of its weakness attribute.</p>
+<p><em>Rationale:</em> The possible allocation and reclamation of instances of these types is an implementation detail. Within the semantics of Scheme, they are considered eternally alive, because a new instance that is <code>eqv?</code> to a previously alive instance may be reallocated at any point in a program.</p>
 <ul>
 <li><code>(make-hashtable hash-function equiv)</code> (procedure)</li>
 <li><code>(make-hashtable hash-function equiv k)</code></li>
@@ -72,12 +76,13 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(alist-&gt;eq-hashtable k alist)</code></li>
 <li><code>(alist-&gt;eq-hashtable k weakness alist)</code></li>
 </ul>
-<p>The semantics of this procedure is equivalent to:</p>
+<p>The semantics of this procedure can be described as:</p>
 <pre><code>(let ((ht (make-eq-hashtable k weakness)))
   (for-each (lambda (entry)
               (hashtable-set! ht (car entry) (cdr entry)))
             alist)
   ht)</code></pre>
+<p>where omission of the <code>k</code> and/or <code>weakness</code> arguments corresponds to their omission in the call to <code>make-eq-hashtable</code>.</p>
 <ul>
 <li><code>(alist-&gt;eqv-hashtable alist)</code> (procedure)</li>
 <li><code>(alist-&gt;eqv-hashtable k alist)</code></li>
@@ -89,7 +94,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(alist-&gt;hashtable hash-function equiv k alist)</code></li>
 <li><code>(alist-&gt;hashtable hash-function equiv k weakness alist)</code></li>
 </ul>
-<p>This procedure is equivalent to <code>alist-&gt;eq-hashtable</code> except that <code>make-hashtable</code> is used to construct the hashtable.</p>
+<p>This procedure is equivalent to <code>alist-&gt;eq-hashtable</code> except that <code>make-hashtable</code> is used to construct the hashtable, with the given <code>hash-function</code> and <code>equiv</code> arguments.</p>
 <ul>
 <li><code>(weakness &lt;weakness symbol&gt;)</code> (syntax)</li>
 </ul>
@@ -97,35 +102,33 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p><em>Rationale:</em> This allows for expand-time verification that a valid weakness attribute is specified.</p>
 <h3 id="procedures">Procedures</h3>
 <ul>
-<li><code>(hashtable? hashtable)</code> (procedure)</li>
+<li><code>(hashtable? obj)</code> (procedure)</li>
 </ul>
-<p>Returns <code>#t</code> if <code>hashtable</code> is a hashtable, <code>#f</code> otherwise.</p>
+<p>Returns <code>#t</code> if <code>obj</code> is a hashtable, <code>#f</code> otherwise.</p>
 <ul>
 <li><code>(hashtable-size hashtable)</code> (procedure)</li>
 </ul>
 <p>Returns the number of keys contained in <code>hashtable</code> as an exact integer object.</p>
 <ul>
-<li><code>(hashtable-ref hashtable key)</code> (procedure)</li>
-<li><code>(hashtable-ref hashtable key default)</code></li>
+<li><code>(hashtable-ref hashtable key default)</code> (procedure)</li>
 </ul>
-<p>When called without the <code>default</code> argument, the <code>hashtable-ref</code> procedure returns two values: the value associated with <code>key</code> in <code>hashtable</code> or <code>#f</code> if there is no association, and a Boolean value indicating whether an association was found.</p>
-<pre><code>(let-values (((value found?) (hashtable-ref hashtable key)))
-  (if (not found?)
-      ... not-found case ...
-      ... use value here ...))</code></pre>
-<p>When called with the <code>default</code> argument, the value associated with <code>key</code> in <code>hashtable</code> is returned, or <code>default</code> if there is no association.</p>
+<p>Returns the value in <code>hashtable</code> associated with <code>key</code>. If <code>hashtable</code> does not contain an association for <code>key</code>, <code>default</code> is returned.</p>
 <ul>
 <li><code>(hashtable-set! hashtable key obj)</code> (procedure)</li>
 </ul>
-<p>Changes <code>hashtable</code> to associate <code>key</code> with <code>obj</code>, adding a new association or replacing any existing association for <code>key</code>, and returns unspecified values.</p>
+<p>Changes <code>hashtable</code> to associate <code>key</code> with <code>obj</code>, adding a new association or replacing any existing association for <code>key</code>, and returns an unspecified value.</p>
 <ul>
 <li><code>(hashtable-delete! hashtable key)</code> (procedure)</li>
 </ul>
-<p>Removes any association for <code>key</code> within <code>hashtable</code> and returns unspecified values.</p>
+<p>Removes any association for <code>key</code> within <code>hashtable</code> and returns an unspecified value.</p>
 <ul>
 <li><code>(hashtable-contains? hashtable key)</code> (procedure)</li>
 </ul>
 <p>Returns <code>#t</code> if <code>hashtable</code> contains an association for <code>key</code>, <code>#f</code> otherwise.</p>
+<ul>
+<li><code>(hashtable-lookup hashtable key)</code> (procedure)</li>
+</ul>
+<p>Returns two values: the value in <code>hashtable</code> associated with <code>key</code> or an unspecified value if there is none, and a Boolean indicating whether an association was found.</p>
 <ul>
 <li><code>(hashtable-update! hashtable key proc default)</code> (procedure)</li>
 </ul>
@@ -133,7 +136,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <ul>
 <li><code>(hashtable-intern! hashtable key default-proc)</code> (procedure)</li>
 </ul>
-<p><code>Default-proc</code> should accept zero arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-intern!</code> procedure returns the association for <code>key</code> in <code>hashtable</code> if there is one, otherwise it calls <code>default-proc</code>, associates its return value with <code>key</code> in <code>hashtable</code>, and returns that value.</p>
+<p><code>Default-proc</code> should accept zero arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-intern!</code> procedure returns the association for <code>key</code> in <code>hashtable</code> if there is one, otherwise it calls <code>default-proc</code> with zero arguments, associates its return value with <code>key</code> in <code>hashtable</code>, and returns that value.</p>
 <ul>
 <li><code>(hashtable-copy hashtable)</code> (procedure)</li>
 <li><code>(hashtable-copy hashtable mutable)</code></li>
@@ -144,12 +147,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(hashtable-clear! hashtable)</code> (procedure)</li>
 <li><code>(hashtable-clear! hashtable k)</code></li>
 </ul>
-<p>Removes all associations from <code>hashtable</code> and returns unspecified values.</p>
-<p>If <code>k</code> is provided and not <code>#f</code>, the current capacity of the hashtable is reset to approximately <code>k</code> elements.</p>
-<ul>
-<li><code>(hashtable-for-each proc hashtable)</code> (procedure)</li>
-</ul>
-<p><code>Proc</code> should accept two arguments, and should not mutate <code>hashtable</code>. The <code>hashtable-for-each</code> procedure applies <code>proc</code> once for every entry in <code>hashtable</code>, passing it the key and value of the entry as arguments. The order in which <code>proc</code> is applied to the entries is unspecified.</p>
+<p>Removes all associations from <code>hashtable</code> and returns an unspecified value. If <code>k</code> is provided and not <code>#f</code>, the current capacity of the hashtable is reset to approximately <code>k</code> elements.</p>
 <ul>
 <li><code>(hashtable-keys hashtable)</code> (procedure)</li>
 </ul>
@@ -162,17 +160,23 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(hashtable-entries hashtable)</code> (procedure)</li>
 </ul>
 <p>Returns two values, a vector of the keys in <code>hashtable</code>, and a vector of the corresponding values.</p>
-<pre><code>(let ((h (make-eqv-hashtable)))
-  (hashtable-set! h 1 &#39;one)
-  (hashtable-set! h 2 &#39;two)
-  (hashtable-set! h 3 &#39;three)
-  (hashtable-entries h))
-  ‌‌    ⇒ #(1 2 3) #(one two three)  ; two return values</code></pre>
 <p><em>Rationale:</em> Returning the keys and values as vectors allows for greater locality and less allocation than if they were returned as lists.</p>
+<ul>
+<li><code>(hashtable-for-each proc hashtable)</code> (procedure)</li>
+</ul>
+<p><code>Proc</code> should accept two arguments, and should not mutate <code>hashtable</code>. The <code>hashtable-for-each</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments. The order in which <code>proc</code> is applied to the associations is unspecified. Return values of <code>proc</code> are ignored.</p>
+<ul>
+<li><code>(hashtable-map! proc hashtable)</code> (procedure)</li>
+</ul>
+<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map!</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and changes the value of the association to the return value of <code>proc</code>. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
 <ul>
 <li><code>(hashtable-fold proc init hashtable)</code> (procedure)</li>
 </ul>
-<p><code>Proc</code> should accept three arguments, should return a single value, and should not mutate <code>hashtable</code>.  The <code>hashtable-fold</code> procedure accumulates a result by applying <code>proc</code> once for every entry in <code>hashtable</code>, passing it as arguments the key and value of the entry and the result of the previous application, or <code>init</code> at the first application.  The order in which <code>proc</code> is applied to the entries is unspecified.</p>
+<p><code>Proc</code> should accept three arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-fold</code> procedure accumulates a result by applying <code>proc</code> once for every association in <code>hashtable</code>, passing it as arguments: the key, the value, and the result of the previous application or <code>init</code> at the first application. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
+<ul>
+<li><code>(hashtable-map-&gt;list proc hashtable)</code> (procedure)</li>
+</ul>
+<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map-&gt;list</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and accumulates the returned values into a list. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
 <ul>
 <li><code>(hashtable-key-list hashtable)</code> (procedure)</li>
 </ul>
@@ -198,7 +202,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <ul>
 <li><code>(hashtable-weakness hashtable)</code> (procedure)</li>
 </ul>
-<p>Returns the weakness attribute of <code>hashtable</code>. The same values that are accepted as the <code>weakness</code> argument in the constructor procedures are returned.</p>
+<p>Returns the weakness attribute of <code>hashtable</code>. The same values that are accepted as the <code>weakness</code> argument in the constructor procedures are returned. This procedure may expose the fact that weak-key and weak-value hashtables are implemented as ephemeral-key and ephemeral-value hashtables, returning symbols indicating the latter even when the former were used to construct the hashtable.</p>
 <ul>
 <li><code>(hashtable-mutable? hashtable)</code> (procedure)</li>
 </ul>
@@ -223,7 +227,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p>Returns an integer hash value for <code>symbol</code>.</p>
 <h2 id="implementation">Implementation</h2>
-<p>The source tree of Larceny Scheme contains a portable implementation of the R6RS hashtables API as an R7RS library.</p>
+<p>Larceny Scheme contains a portable implementation of the R6RS hashtables API as an R7RS library. It is included in the version control repository of this SRFI.</p>
 <p>The alist constructors can be implemented trivially as seen in the piece of code describing their semantics. Here is a complete definition of <code>alist-&gt;eq-hashtable</code>:</p>
 <pre><code>(define alist-&gt;eq-hashtable
   (case-lambda
@@ -236,10 +240,10 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
                  alist)
        ht))))</code></pre>
 <p>The <code>hashtable-lookup</code> and <code>hashtable-intern!</code> procedures are trivial to implement, although it's desirable that they be implemented more efficiently at the platform level:</p>
-<pre><code>(define (hashtable-lookup ht key found-proc not-found-proc)
+<pre><code>(define (hashtable-lookup ht key)
   (if (hashtable-contains? key)
-      (found-proc (hashtable-ref ht key #f))
-      (not-found-proc)))
+      (values (hashtable-ref ht key #f) #t)
+      (values #f #f)))
 
 (define (hashtable-intern! ht key default-proc)
   (if (hashtable-contains? key)
@@ -247,9 +251,23 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
       (let ((value (default-proc)))
         (hashtable-set! ht key value)
         value)))</code></pre>
-<p>The <code>hashtable-values</code> and <code>hashtable-for-each</code> procedures are trivial to implement in terms of <code>hashtable-entries</code>, but it is desirable that they be implemented more efficiently at the platform level.</p>
-<p>Weak and ephemeral hashtables cannot be implemented by portable library code. They need to be implemented either directly at the platform level, or by using functionality which in turn needs to be implemented at the platform level, such as weak and ephemeral pairs.</p>
-<p>For these reasons, a full sample implementation is not provided.</p>
+<p>The <code>hashtable-values</code>, <code>hashtable-for-each</code>, and <code>hashtable-map!</code> procedures are simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that they be implemented more efficiently at the platform level.</p>
+<p>The <code>hashtable-fold</code> procedure could be implemented in terms of <code>hashtable-entries</code>, <code>vector-&gt;list</code>, and <code>fold</code>, but it is definitely desirable to implement it more efficiently. Given an efficient <code>hashtable-fold</code>, the following definitions can be used:</p>
+<pre><code>(define (hashtable-map-&gt;list proc ht)
+  (hashtable-fold &#39;()
+                  (lambda (key value acc)
+                    (cons (proc key value) acc))
+                  ht))
+
+(define (hashtable-key-list ht)
+  (hashtable-map-&gt;list (lambda (key value) key) ht))
+
+(define (hashtable-value-list ht)
+  (hashtable-map-&gt;list (lambda (key value) value) ht))
+
+(define (hashtable-&gt;alist ht)
+  (hashtable-map-&gt;list cons ht))</code></pre>
+<p>Weak and ephemeral hashtables cannot be implemented by portable library code. They need to be implemented either directly at the platform level, or by using functionality which in turn needs to be implemented at the platform level, such as weak and ephemeral pairs. See MIT/GNU Scheme for an example.</p>
 <h2 id="acknowledgments">Acknowledgments</h2>
 <p>Thanks to Taylor Campbell and MIT/GNU Scheme for inspiring the idea of weak and ephemeral hashtables, some miscellaneous procedures, and overall input in the design of this SRFI.</p>
 <h2 id="copyright-and-license">Copyright and license</h2>
