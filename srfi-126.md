@@ -20,7 +20,7 @@ You can access previous messages via the mailing list
 
   - Received: 2015/9/8
   - Draft #1 published: 2015/9/8
-
+  - Draft #2 published: 2015/9/9
 
 Abstract
 --------
