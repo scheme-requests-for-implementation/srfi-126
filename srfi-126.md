@@ -73,8 +73,7 @@ may be summarized as follows:
 
 - Support for weak and ephemeral hashtables.
 - A triplet of `alist->hashtable` constructors.
-- An extension to the `hashtable-ref` semantics.
-- A `hashtable-intern!` procedure.
+- The procedures `hashtable-lookup` and `hashtable-intern!`.
 - A `hashtable-for-each` procedure.
 - Addition of the missing `hashtable-values` procedure.
 - A `hashtable-fold` procedure.
@@ -230,22 +229,11 @@ Returns `#t` if `hashtable` is a hashtable, `#f` otherwise.
 Returns the number of keys contained in `hashtable` as an exact
 integer object.
 
-- `(hashtable-ref hashtable key)` (procedure)
-- `(hashtable-ref hashtable key default)`
+- `(hashtable-ref hashtable key default)` (procedure)
 
-When called without the `default` argument, the `hashtable-ref`
-procedure returns two values: the value associated with `key` in
-`hashtable` or `#f` if there is no association, and a Boolean value
-indicating whether an association was found.
-
-    (let-values (((value found?) (hashtable-ref hashtable key)))
-      (if (not found?)
-          ... not-found case ...
-          ... use value here ...))
-
-When called with the `default` argument, the value associated with
-`key` in `hashtable` is returned, or `default` if there is no
-association.
+Returns the value in `hashtable` associated with `key`.  If
+`hashtable` does not contain an association for `key`, `default` is
+returned.
 
 - `(hashtable-set! hashtable key obj)` (procedure)
 
@@ -262,6 +250,12 @@ unspecified values.
 
 Returns `#t` if `hashtable` contains an association for `key`, `#f`
 otherwise.
+
+- `(hashtable-lookup hashtable key)` (procedure)
+
+Returns two values: the value in `hashtable` associated with `key` or
+an unspecified value if there is none, and a Boolean indicating
+whether an association was found.
 
 - `(hashtable-update! hashtable key proc default)` (procedure)
 
@@ -449,10 +443,10 @@ The `hashtable-lookup` and `hashtable-intern!` procedures are trivial
 to implement, although it's desirable that they be implemented more
 efficiently at the platform level:
 
-    (define (hashtable-lookup ht key found-proc not-found-proc)
+    (define (hashtable-lookup ht key)
       (if (hashtable-contains? key)
-          (found-proc (hashtable-ref ht key #f))
-          (not-found-proc)))
+          (values (hashtable-ref ht key #f) #t)
+          (values #f #f)))
 
     (define (hashtable-intern! ht key default-proc)
       (if (hashtable-contains? key)
