@@ -82,12 +82,12 @@ may be summarized as follows:
 Specification
 -------------
 
-The `(scheme hashtables)` library provides a set of operations on
-hashtables.  A hashtable is of a disjoint type that associates keys
-with values.  Any object can be used as a key, provided a hash
-function and a suitable equivalence function is available.  A hash
-function is a procedure that maps keys to exact integer objects.  It
-is the programmer's responsibility to ensure that the hash function is
+The `(srfi 126)` library provides a set of operations on hashtables.
+A hashtable is of a disjoint type that associates keys with values.
+Any object can be used as a key, provided a hash function and a
+suitable equivalence function is available.  A hash function is a
+procedure that maps keys to exact integer objects.  It is the
+programmer's responsibility to ensure that the hash function is
 compatible with the equivalence function, which is a procedure that
 accepts two keys and returns true if they are equivalent and `#f`
 otherwise.  Standard hashtables for arbitrary objects based on the
