@@ -95,31 +95,46 @@ otherwise.  Standard hashtables for arbitrary objects based on the
 predicates”) are provided.  Also, hash functions for arbitrary
 objects, strings, and symbols are provided.
 
-Hashtables can store their key, value, or key and value weakly, or
-ephemerally.  Storing an object weakly or ephemerally means that the
-storage location of the object does not count towards the total
-storage locations in the program which refer to the object, meaning
-the object can be reclaimed as soon as no non-weak non-ephemeral
-storage locations referring to the object remain.  When this happens,
-all entries of the hashtable which have the reclaimed object as their
-key or value are deleted.  Storing either or both of a key and value
-pair ephemerally means additionally that no references from the value
-or key towards the key or value respectively count towards the total
-references of the key or value within the program.  For instance, an
-ephemerally keyed hashtable with an entry mapping an element of a
-vector to the vector itself may delete said entry when no references
-remain to the vector nor the element of the vector from outside the
-vector.  If the hashtable were weakly keyed, then the reference to the
-key from within the vector would protect the key from reclamation,
-preventing the deletion of the entry even when no references to the
-key (element) nor value (vector) remained from outside the hashtable.
+Hashtables can store their key, value, or key and value weakly.
+Storing an object weakly means that the storage location of the object
+does not count towards the total storage locations in the program
+which refer to the object, meaning the object can be reclaimed as soon
+as no non-weak storage locations referring to the object remain.
+Weakly stored objects referring to each other in a cycle will be
+reclaimed as well if none of them are referred to from outside the
+cycle.  When a weakly stored object is reclaimed, entries in the
+hashtable which have the object as their key or value are deleted.
 
-An implementation may implement weak hashtables as ephemeral
-hashtables.
+Hashtables can also store their key and value in ephemeral storage
+pairs.  The objects in an ephemeral storage pair are stored weakly,
+but both protected from reclamation as long as there remain non-weak
+references to the first object reachable from outside the ephemeral
+storage pair.  In particular, an ephemeral-key hashtable (where the
+keys are the first objects in the ephemeral storage pairs), with an
+entry mapping an element of a vector to the vector itself, may delete
+said entry when no non-weak references remain to the vector nor its
+element in the rest of the program.  If it were a weak-key hashtable,
+the reference to the key from within the vector would cyclically
+protect the key and value from reclamation, even when no non-weak
+references to the key and value remained from outside the hashtable.
+At the absence of such references between the key and value,
+ephemeral-key and ephemeral-value hashtables behave effectively
+equivalent to weak-key and weak-value hashtables.
 
-*Rationale:* While the semantics of weak hashtables is usually
-undesired, their implementation might be more efficient than ephemeral
-hashtables.
+An implementation may implement weak-key and weak-value hashtables as
+ephemeral-key and ephemeral-value hashtables.
+
+*Rationale:* While the semantics of weak-key and weak-value hashtables
+is undesired, their implementation might be more efficient than
+ephemeral-key and ephemeral-value hashtables.
+
+Ephemeral-key-and-value hashtables use a pair of ephemeral storage
+pairs for each entry: one where the key is the first object and one
+where the value is.  This means that the key and value are protected
+from reclamation until no references remain to neither the key nor
+value from outside the hashtable.  In contrast, a weak-key-and-value
+hashtable will drop an entry as soon as either the key or value is
+reclaimed.
 
 This section uses the hashtable parameter name for arguments that must
 be hashtables, and the key parameter name for arguments that must be
