@@ -467,6 +467,26 @@ The `hashtable-values` and `hashtable-for-each` procedures are trivial
 to implement in terms of `hashtable-entries`, but it is desirable that
 they be implemented more efficiently at the platform level.
 
+The `hashtable-fold` procedure could be implemented in terms of
+`hashtable-entries`, `vector->list`, and `fold`, but it is definitely
+desirable to implement it more efficiently.  Given an efficient
+`hashtable-fold`, the following definitions can be used:
+
+    (define (hashtable-map->list proc ht)
+      (hashtable-fold '()
+                      (lambda (key value acc)
+                        (cons (proc key value) acc))
+                      ht))
+
+    (define (hashtable-key-list ht)
+      (hashtable-map->list (lambda (key value) key) ht))
+
+    (define (hashtable-value-list ht)
+      (hashtable-map->list (lambda (key value) value) ht))
+
+    (define (hashtable->alist ht)
+      (hashtable-map->list cons ht))
+
 Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the
 platform level, or by using functionality which in turn needs to be
