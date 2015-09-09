@@ -78,6 +78,10 @@ may be summarized as follows:
 - The procedures `hashtable-key-list`, `hashtable-value-list`, and
   `hashtable->alist`.
 
+Additionally, this specification adheres to the R7RS rule of
+specifying a single return value for procedures which don't have
+meaningful return values.
+
 
 Specification
 -------------
