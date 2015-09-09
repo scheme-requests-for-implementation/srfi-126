@@ -259,12 +259,12 @@ returned.
 
 Changes `hashtable` to associate `key` with `obj`, adding a new
 association or replacing any existing association for `key`, and
-returns unspecified values.
+returns an unspecified value.
 
 - `(hashtable-delete! hashtable key)` (procedure)
 
 Removes any association for `key` within `hashtable` and returns
-unspecified values.
+an unspecified value.
 
 - `(hashtable-contains? hashtable key)` (procedure)
 
@@ -307,8 +307,8 @@ of `hashtable` is used.
 - `(hashtable-clear! hashtable)` (procedure)
 - `(hashtable-clear! hashtable k)`
 
-Removes all associations from `hashtable` and returns unspecified
-values.
+Removes all associations from `hashtable` and returns an unspecified
+value.
 
 If `k` is provided and not `#f`, the current capacity of the hashtable
 is reset to approximately `k` elements.
