@@ -291,8 +291,8 @@ returned by `proc`.
 `Default-proc` should accept zero arguments, should return a single
 value, and should not mutate `hashtable`.  The `hashtable-intern!`
 procedure returns the association for `key` in `hashtable` if there is
-one, otherwise it calls `default-proc`, associates its return value
-with `key` in `hashtable`, and returns that value.
+one, otherwise it calls `default-proc` with zero arguments, associates
+its return value with `key` in `hashtable`, and returns that value.
 
 - `(hashtable-copy hashtable)` (procedure)
 - `(hashtable-copy hashtable mutable)`

@@ -134,7 +134,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <ul>
 <li><code>(hashtable-intern! hashtable key default-proc)</code> (procedure)</li>
 </ul>
-<p><code>Default-proc</code> should accept zero arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-intern!</code> procedure returns the association for <code>key</code> in <code>hashtable</code> if there is one, otherwise it calls <code>default-proc</code>, associates its return value with <code>key</code> in <code>hashtable</code>, and returns that value.</p>
+<p><code>Default-proc</code> should accept zero arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-intern!</code> procedure returns the association for <code>key</code> in <code>hashtable</code> if there is one, otherwise it calls <code>default-proc</code> with zero arguments, associates its return value with <code>key</code> in <code>hashtable</code>, and returns that value.</p>
 <ul>
 <li><code>(hashtable-copy hashtable)</code> (procedure)</li>
 <li><code>(hashtable-copy hashtable mutable)</code></li>
