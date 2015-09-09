@@ -36,7 +36,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li>A triplet of <code>alist-&gt;hashtable</code> constructors.</li>
 <li>The procedures <code>hashtable-lookup</code> and <code>hashtable-intern!</code>.</li>
 <li>Addition of the missing <code>hashtable-values</code> procedure.</li>
-<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-fold</code> and <code>hashtable-map-&gt;list</code>.</li>
+<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-fold</code> and <code>hashtable-map-&gt;list</code>.</li>
 <li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-&gt;alist</code>.</li>
 </ul>
 <h2 id="specification">Specification</h2>
@@ -165,6 +165,10 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p><code>Proc</code> should accept two arguments, and should not mutate <code>hashtable</code>. The <code>hashtable-for-each</code> procedure applies <code>proc</code> once for every entry in <code>hashtable</code>, passing it the key and value of the entry as arguments. The order in which <code>proc</code> is applied to the entries is unspecified.</p>
 <ul>
+<li><code>(hashtable-map! proc hashtable)</code> (procedure)</li>
+</ul>
+<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map!</code> procedure applies <code>proc</code> once for every entry in <code>hashtable</code>, passing it the key and value of the entry as arguments, and changes the value for that key to the return value of <code>proc</code>. The order in which <code>proc</code> is applied to the entries is unspecified.</p>
+<ul>
 <li><code>(hashtable-fold proc init hashtable)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept three arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-fold</code> procedure accumulates a result by applying <code>proc</code> once for every entry in <code>hashtable</code>, passing it as arguments the key and value of the entry and the result of the previous application, or <code>init</code> at the first application. The order in which <code>proc</code> is applied to the entries is unspecified.</p>
@@ -246,7 +250,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
       (let ((value (default-proc)))
         (hashtable-set! ht key value)
         value)))</code></pre>
-<p>The <code>hashtable-values</code> and <code>hashtable-for-each</code> procedures are trivial to implement in terms of <code>hashtable-entries</code>, but it is desirable that they be implemented more efficiently at the platform level.</p>
+<p>The <code>hashtable-values</code>, <code>hashtable-for-each</code>, and <code>hashtable-map!</code> procedures are simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that they be implemented more efficiently at the platform level.</p>
 <p>The <code>hashtable-fold</code> procedure could be implemented in terms of <code>hashtable-entries</code>, <code>vector-&gt;list</code>, and <code>fold</code>, but it is definitely desirable to implement it more efficiently. Given an efficient <code>hashtable-fold</code>, the following definitions can be used:</p>
 <pre><code>(define (hashtable-map-&gt;list proc ht)
   (hashtable-fold &#39;()

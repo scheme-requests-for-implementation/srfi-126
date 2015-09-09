@@ -73,8 +73,8 @@ may be summarized as follows:
 - A triplet of `alist->hashtable` constructors.
 - The procedures `hashtable-lookup` and `hashtable-intern!`.
 - Addition of the missing `hashtable-values` procedure.
-- The procedures `hashtable-for-each`, `hashtable-fold` and
-  `hashtable-map->list`.
+- The procedures `hashtable-for-each`, `hashtable-map!`,
+  `hashtable-fold` and `hashtable-map->list`.
 - The procedures `hashtable-key-list`, `hashtable-value-list`, and
   `hashtable->alist`.
 
@@ -341,6 +341,15 @@ in `hashtable`, passing it the key and value of the entry as
 arguments.  The order in which `proc` is applied to the entries is
 unspecified.
 
+- `(hashtable-map! proc hashtable)` (procedure)
+
+`Proc` should accept two arguments, should return a single value, and
+should not mutate `hashtable`.  The `hashtable-map!` procedure applies
+`proc` once for every entry in `hashtable`, passing it the key and
+value of the entry as arguments, and changes the value for that key to
+the return value of `proc`.  The order in which `proc` is applied to
+the entries is unspecified.
+
 - `(hashtable-fold proc init hashtable)` (procedure)
 
 `Proc` should accept three arguments, should return a single value,
@@ -476,9 +485,10 @@ efficiently at the platform level:
             (hashtable-set! ht key value)
             value)))
 
-The `hashtable-values` and `hashtable-for-each` procedures are trivial
-to implement in terms of `hashtable-entries`, but it is desirable that
-they be implemented more efficiently at the platform level.
+The `hashtable-values`, `hashtable-for-each`, and `hashtable-map!`
+procedures are simple to implement in terms of `hashtable-entries`,
+but it is desirable that they be implemented more efficiently at the
+platform level.
 
 The `hashtable-fold` procedure could be implemented in terms of
 `hashtable-entries`, `vector->list`, and `fold`, but it is definitely
