@@ -102,17 +102,17 @@ which refer to the object, meaning the object can be reclaimed as soon
 as no non-weak storage locations referring to the object remain.
 Weakly stored objects referring to each other in a cycle will be
 reclaimed as well if none of them are referred to from outside the
-cycle.  When a weakly stored object is reclaimed, entries in the
+cycle.  When a weakly stored object is reclaimed, associations in the
 hashtable which have the object as their key or value are deleted.
 
 Hashtables can also store their key and value in ephemeral storage
 pairs.  The objects in an ephemeral storage pair are stored weakly,
 but both protected from reclamation as long as there remain non-weak
-references to the first object reachable from outside the ephemeral
-storage pair.  In particular, an ephemeral-key hashtable (where the
-keys are the first objects in the ephemeral storage pairs), with an
-entry mapping an element of a vector to the vector itself, may delete
-said entry when no non-weak references remain to the vector nor its
+references to the first object from outside the ephemeral storage
+pair.  In particular, an ephemeral-key hashtable (where the keys are
+the first objects in the ephemeral storage pairs), with an association
+mapping an element of a vector to the vector itself, may delete said
+association when no non-weak references remain to the vector nor its
 element in the rest of the program.  If it were a weak-key hashtable,
 the reference to the key from within the vector would cyclically
 protect the key and value from reclamation, even when no non-weak
@@ -129,12 +129,12 @@ is undesired, their implementation might be more efficient than
 ephemeral-key and ephemeral-value hashtables.
 
 Ephemeral-key-and-value hashtables use a pair of ephemeral storage
-pairs for each entry: one where the key is the first object and one
-where the value is.  This means that the key and value are protected
-from reclamation until no references remain to neither the key nor
-value from outside the hashtable.  In contrast, a weak-key-and-value
-hashtable will drop an entry as soon as either the key or value is
-reclaimed.
+pairs for each association: one where the key is the first object and
+one where the value is.  This means that the key and value are
+protected from reclamation until no references remain to neither the
+key nor value from outside the hashtable.  In contrast, a
+weak-key-and-value hashtable will delete an association as soon as
+either the key or value is reclaimed.
 
 This section uses the hashtable parameter name for arguments that must
 be hashtables, and the key parameter name for arguments that must be
@@ -169,7 +169,7 @@ ephemerally in a hashtable returned by `make-eqv-hashtable`,
 regardless of its weakness attribute.
 
 *Rationale:* The possible allocation and reclamation of instances of
-these types is an implementation detail only.  Within the semantics of
+these types is an implementation detail.  Within the semantics of
 Scheme, they are considered eternally alive, because a new instance
 that is `eqv?` to a previously alive instance may be reallocated at
 any point in a program.
@@ -205,13 +205,16 @@ any hashtable operation may call the hash function more than once.
 - `(alist->eq-hashtable k alist)`
 - `(alist->eq-hashtable k weakness alist)`
 
-The semantics of this procedure is equivalent to:
+The semantics of this procedure can be described as:
 
     (let ((ht (make-eq-hashtable k weakness)))
       (for-each (lambda (entry)
                   (hashtable-set! ht (car entry) (cdr entry)))
                 alist)
       ht)
+
+where omission of the `k` and/or `weakness` arguments corresponds to
+their omission in the call to `make-eq-hashtable`.
 
 - `(alist->eqv-hashtable alist)` (procedure)
 - `(alist->eqv-hashtable k alist)`
@@ -225,7 +228,8 @@ This procedure is equivalent to `alist->eq-hashtable` except that
 - `(alist->hashtable hash-function equiv k weakness alist)`
 
 This procedure is equivalent to `alist->eq-hashtable` except that
-`make-hashtable` is used to construct the hashtable.
+`make-hashtable` is used to construct the hashtable, with the given
+`hash-function` and `equiv` arguments.
 
 - `(weakness <weakness symbol>)` (syntax)
 
@@ -308,10 +312,8 @@ of `hashtable` is used.
 - `(hashtable-clear! hashtable k)`
 
 Removes all associations from `hashtable` and returns an unspecified
-value.
-
-If `k` is provided and not `#f`, the current capacity of the hashtable
-is reset to approximately `k` elements.
+value.  If `k` is provided and not `#f`, the current capacity of the
+hashtable is reset to approximately `k` elements.
 
 - `(hashtable-keys hashtable)` (procedure)
 
@@ -336,37 +338,38 @@ lists.
 - `(hashtable-for-each proc hashtable)` (procedure)
 
 `Proc` should accept two arguments, and should not mutate `hashtable`.
-The `hashtable-for-each` procedure applies `proc` once for every entry
-in `hashtable`, passing it the key and value of the entry as
-arguments.  The order in which `proc` is applied to the entries is
-unspecified.
+The `hashtable-for-each` procedure applies `proc` once for every
+association in `hashtable`, passing it the key and value as arguments.
+The order in which `proc` is applied to the associations is
+unspecified.  Return values of `proc` are ignored.
 
 - `(hashtable-map! proc hashtable)` (procedure)
 
 `Proc` should accept two arguments, should return a single value, and
 should not mutate `hashtable`.  The `hashtable-map!` procedure applies
-`proc` once for every entry in `hashtable`, passing it the key and
-value of the entry as arguments, and changes the value for that key to
+`proc` once for every association in `hashtable`, passing it the key
+and value as arguments, and changes the value of the association to
 the return value of `proc`.  The order in which `proc` is applied to
-the entries is unspecified.
+the associations is unspecified.
 
 - `(hashtable-fold proc init hashtable)` (procedure)
 
 `Proc` should accept three arguments, should return a single value,
 and should not mutate `hashtable`.  The `hashtable-fold` procedure
-accumulates a result by applying `proc` once for every entry in
-`hashtable`, passing it as arguments the key and value of the entry
-and the result of the previous application, or `init` at the first
-application.  The order in which `proc` is applied to the entries is
+accumulates a result by applying `proc` once for every association in
+`hashtable`, passing it as arguments: the key, the value, and the
+result of the previous application or `init` at the first application.
+The order in which `proc` is applied to the associations is
 unspecified.
 
 - `(hashtable-map->list proc hashtable)` (procedure)
 
 `Proc` should accept two arguments, should return a single value, and
 should not mutate `hashtable`.  The `hashtable-map->list` procedure
-applies `proc` to every key and value in `hashtable` and returns the
-returned values as a list.  The order in which `proc` is applied to
-the entries is unspecified.
+applies `proc` once for every association in `hashtable`, passing it
+the key and value as arguments, and accumulates the returned values
+into a list.  The order in which `proc` is applied to the associations
+is unspecified.
 
 - `(hashtable-key-list hashtable)` (procedure)
 
