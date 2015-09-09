@@ -35,12 +35,10 @@ seriously.
 Rationale
 ---------
 
-This specification provides a more conservative alternative to
-SRFI-125.  Instead of inventing a third incompatible hashtable API
-(SRFI-125 is mostly, but not entirely, backwards compatible with
-SRFI-69), it builds upon the R6RS hashtables API, with only a few,
-fully backwards compatible additions, most notably for weak and
-ephemeral hashtable support.
+This specification provides an alternative to SRFI-125.  It builds on
+the R6RS hashtables API instead of SRFI-69, with only a few, fully
+backwards compatible additions, most notably for weak and ephemeral
+hashtable support.
 
 There is "full" backwards compatibility in the sense that all R6RS
 hashtable operations within a piece of code that execute without
@@ -55,16 +53,16 @@ The R6RS hashtables API is favored over SRFI-69 because the latter
 contains serious flaws.  In particular, exposing the hashing functions
 for the `eq?` and `eqv?` procedures is a hindrance for Scheme
 implementations with a moving garbage collector.  SRFI-125 works
-around this by removing the `hash-table-equivalence-function` and
-`hash-table-hash-function` procedures from its API entirely, and
-allowing the hashing function passed to `make-hash-table` to be
-ignored by the implementation.  R6RS is arguably cleaner, providing
-dedicated constructors for `eq?` and `eqv?` based hashtables, and
-returning `#f` when their hashing function is queried.
+around this by allowing the user-provided hashing function passed to
+`make-hash-table` to be ignored by the implementation, and allowing
+the `hash-table-hash-function` procedure to return `#f` instead of the
+hashing function passed to `make-hash-table`.  R6RS avoids the issue
+by providing dedicated constructors for `eq?` and `eqv?` based
+hashtables, and returning `#f` when their hashing function is queried.
 
 This specification also does not depend on SRFI-114 (Comparators),
-does not specify a spurious amount of utility functions, nor does it
-describe a bimap API.  There is no attempt at supporting thread safety
+does not specify a spurious amount of utility functions, does not
+describe a bimap API, and does not attempt to specify thread-safety
 because typical multi-threaded use-cases will most likely involve
 locking more than just accesses and mutations of hashtables.
 
