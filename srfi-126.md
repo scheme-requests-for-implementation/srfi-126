@@ -408,7 +408,10 @@ by `make-eq-hashtable` or `make-eqv-hashtable`, `#f` is returned.
 
 Returns the weakness attribute of `hashtable`.  The same values that
 are accepted as the `weakness` argument in the constructor procedures
-are returned.
+are returned.  This procedure may expose the fact that weak-key and
+weak-value hashtables are implemented as ephemeral-key and
+ephemeral-value hashtables, returning symbols indicating the latter
+even when the former were used to construct the hashtable.
 
 - `(hashtable-mutable? hashtable)` (procedure)
 

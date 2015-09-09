@@ -201,7 +201,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <ul>
 <li><code>(hashtable-weakness hashtable)</code> (procedure)</li>
 </ul>
-<p>Returns the weakness attribute of <code>hashtable</code>. The same values that are accepted as the <code>weakness</code> argument in the constructor procedures are returned.</p>
+<p>Returns the weakness attribute of <code>hashtable</code>. The same values that are accepted as the <code>weakness</code> argument in the constructor procedures are returned. This procedure may expose the fact that weak-key and weak-value hashtables are implemented as ephemeral-key and ephemeral-value hashtables, returning symbols indicating the latter even when the former were used to construct the hashtable.</p>
 <ul>
 <li><code>(hashtable-mutable? hashtable)</code> (procedure)</li>
 </ul>
