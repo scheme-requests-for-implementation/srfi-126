@@ -121,9 +121,6 @@ hashtables.
 undesired, their implementation might be more efficient than ephemeral
 hashtables.
 
-Booleans, characters, numbers, and symbols are never stored weakly or
-ephemerally.
-
 This section uses the hashtable parameter name for arguments that must
 be hashtables, and the key parameter name for arguments that must be
 hashtable keys.
@@ -151,6 +148,16 @@ status for the keys and values in the hashtable.
 Returns a newly allocated mutable hashtable that accepts arbitrary
 objects as keys, and compares those keys with `eqv?`.  The semantics
 of the optional arguments are as in `make-eq-hashtable`.
+
+Booleans, characters, numbers, and symbols are never stored weakly or
+ephemerally in a hashtable returned by `make-eqv-hashtable`,
+regardless of its weakness attribute.
+
+*Rationale:* The possible allocation and reclamation of instances of
+these types is an implementation detail only.  Within the semantics of
+Scheme, they are considered eternally alive, because a new instance
+that is `eqv?` to a previously alive instance may be reallocated at
+any point in a program.
 
 - `(make-hashtable hash-function equiv)` (procedure)
 - `(make-hashtable hash-function equiv k)`

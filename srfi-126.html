@@ -44,7 +44,6 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>Hashtables can store their key, value, or key and value weakly, or ephemerally. Storing an object weakly or ephemerally means that the storage location of the object does not count towards the total storage locations in the program which refer to the object, meaning the object can be reclaimed as soon as no non-weak non-ephemeral storage locations referring to the object remain. When this happens, all entries of the hashtable which have the reclaimed object as their key or value are deleted. Storing either or both of a key and value pair ephemerally means additionally that no references from the value or key towards the key or value respectively count towards the total references of the key or value within the program. For instance, an ephemerally keyed hashtable with an entry mapping an element of a vector to the vector itself may delete said entry when no references remain to the vector nor the element of the vector from outside the vector. If the hashtable were weakly keyed, then the reference to the key from within the vector would protect the key from reclamation, preventing the deletion of the entry even when no references to the key (element) nor value (vector) remained from outside the hashtable.</p>
 <p>An implementation may implement weak hashtables as ephemeral hashtables.</p>
 <p><em>Rationale:</em> While the semantics of weak hashtables is usually undesired, their implementation might be more efficient than ephemeral hashtables.</p>
-<p>Booleans, characters, numbers, and symbols are never stored weakly or ephemerally.</p>
 <p>This section uses the hashtable parameter name for arguments that must be hashtables, and the key parameter name for arguments that must be hashtable keys.</p>
 <h3 id="constructors">Constructors</h3>
 <ul>
@@ -59,6 +58,8 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(make-eqv-hashtable k weakness)</code></li>
 </ul>
 <p>Returns a newly allocated mutable hashtable that accepts arbitrary objects as keys, and compares those keys with <code>eqv?</code>. The semantics of the optional arguments are as in <code>make-eq-hashtable</code>.</p>
+<p>Booleans, characters, numbers, and symbols are never stored weakly or ephemerally in a hashtable returned by <code>make-eqv-hashtable</code>, regardless of its weakness attribute.</p>
+<p><em>Rationale:</em> The possible allocation and reclamation of instances of these types is an implementation detail only. Within the semantics of Scheme, they are considered eternally alive, because a new instance that is <code>eqv?</code> to a previously alive instance may be reallocated at any point in a program.</p>
 <ul>
 <li><code>(make-hashtable hash-function equiv)</code> (procedure)</li>
 <li><code>(make-hashtable hash-function equiv k)</code></li>
