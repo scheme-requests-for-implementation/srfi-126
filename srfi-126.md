@@ -240,9 +240,9 @@ weakness attribute is specified.
 
 ### Procedures
 
-- `(hashtable? hashtable)` (procedure)
+- `(hashtable? obj)` (procedure)
 
-Returns `#t` if `hashtable` is a hashtable, `#f` otherwise.
+Returns `#t` if `obj` is a hashtable, `#f` otherwise.
 
 - `(hashtable-size hashtable)` (procedure)
 
