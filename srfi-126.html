@@ -25,9 +25,9 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li>Draft #2 published: 2015/9/9</li>
 </ul>
 <h2 id="abstract">Abstract</h2>
-<p>We provide a hashtable API that takes the R6RS hashtables API as a basis and makes backwards compatible additions such as support for weak hashtables. The API is backwards compatible insofar the R6RS's prohibition of extending the domains of its procedures is not taken seriously.</p>
+<p>We provide a hashtable API that takes the R6RS hashtables API as a basis and makes backwards compatible additions such as support for weak hashtables, external representation, and utility procedures.</p>
 <h2 id="rationale">Rationale</h2>
-<p>This specification provides an alternative to SRFI-125. It builds on the R6RS hashtables API instead of SRFI-69, with only a few, fully backwards compatible additions, most notably weak and ephemeral hashtables. Other additions are limited to utility procedures, whose criteria for inclusion are that they be:</p>
+<p>This specification provides an alternative to SRFI-125. It builds on the R6RS hashtables API instead of SRFI-69, with only a few, fully backwards compatible additions, most notably weak and ephemeral hashtables, and external representation. Other additions are limited to utility procedures, whose criteria for inclusion are that they be:</p>
 <ul>
 <li>used frequently in typical user code, and/or</li>
 <li>essential for the efficient implementation of further operations.</li>
@@ -38,6 +38,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>The additions made by this specification to the R6RS hashtables API may be summarized as follows:</p>
 <ul>
 <li>Support for weak and ephemeral hashtables.</li>
+<li>External representation for hashtables.</li>
 <li>A triplet of <code>alist-&gt;hashtable</code> constructors.</li>
 <li>The procedures <code>hashtable-lookup</code> and <code>hashtable-intern!</code>.</li>
 <li>The procedure <code>hashtable-clear-copy</code>.</li>
@@ -107,6 +108,12 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p>The <code>&lt;weakness symbol&gt;</code> must correspond to one of the non-<code>#f</code> values accepted for the <code>weakness</code> argument of the constructor procedures. Given such a symbol, it is returned as a datum. Passing any other argument is an error.</p>
 <p><em>Rationale:</em> This allows for expand-time verification that a valid weakness attribute is specified.</p>
+<h3 id="external-representation">External representation</h3>
+<p>An implementation may optionally support external representations for the most common types of hashtables so that they can be read and written by and appear as constants in programs.</p>
+<p><code>Eq?</code> and <code>eqv?</code> based hashtables are written using the notation <code>#hasheq(entry ...)</code> and <code>#hasheqv(entry ...)</code> respectively, where each <code>entry</code> must have the form <code>(key . value)</code>.</p>
+<p>Hashtables using <code>equal-hash</code> as the hash function and <code>equal?</code> as the equivalence function may be written using the notation <code>#hash(entry ...)</code>. Other types of hashtables may be written using the notation <code>#hash(type entry ...)</code> where <code>type</code> must be one of: <code>string</code>, <code>string-ci</code>, and <code>symbol</code>. When <code>type</code> is <code>string</code>, the hashtable uses <code>string-hash</code> and <code>string=?</code> as the hash and equivalence function respectively. When <code>string-ci</code>, it uses <code>string-ci-hash</code> and <code>string-ci=?</code>. When <code>symbol</code>, it uses <code>symbol-hash</code> and <code>eq?</code>.</p>
+<p>It is an error if any two keys in the list of entries are equivalent as per the equivalence function of the hashtable.</p>
+<p>Hashtable constants are self-evaluating, meaning they do not need to be quoted in programs. The resulting hashtable must be immutable, and its weakness <code>#f</code>. The keys and values in the hashtable may be immutable.</p>
 <h3 id="procedures">Procedures</h3>
 <ul>
 <li><code>(hashtable? obj)</code> (procedure)</li>
@@ -291,6 +298,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 (define (hashtable-&gt;alist ht)
   (hashtable-map-&gt;list cons ht))</code></pre>
 <p>Weak and ephemeral hashtables cannot be implemented by portable library code. They need to be implemented either directly at the platform level, or by using functionality which in turn needs to be implemented at the platform level, such as weak and ephemeral pairs. See MIT/GNU Scheme for an example.</p>
+<p>External representation cannot be implemented by portable library code.</p>
 <h2 id="acknowledgments">Acknowledgments</h2>
 <p>Thanks to Taylor Campbell and MIT/GNU Scheme for inspiring the idea of weak and ephemeral hashtables, some miscellaneous procedures, and overall input in the design of this SRFI.</p>
 <h2 id="copyright-and-license">Copyright and license</h2>

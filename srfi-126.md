@@ -27,9 +27,7 @@ Abstract
 
 We provide a hashtable API that takes the R6RS hashtables API as a
 basis and makes backwards compatible additions such as support for
-weak hashtables.  The API is backwards compatible insofar the R6RS's
-prohibition of extending the domains of its procedures is not taken
-seriously.
+weak hashtables, external representation, and utility procedures.
 
 
 Rationale
@@ -38,8 +36,8 @@ Rationale
 This specification provides an alternative to SRFI-125.  It builds on
 the R6RS hashtables API instead of SRFI-69, with only a few, fully
 backwards compatible additions, most notably weak and ephemeral
-hashtables.  Other additions are limited to utility procedures, whose
-criteria for inclusion are that they be:
+hashtables, and external representation.  Other additions are limited
+to utility procedures, whose criteria for inclusion are that they be:
 
 - used frequently in typical user code, and/or
 - essential for the efficient implementation of further operations.
@@ -74,6 +72,7 @@ The additions made by this specification to the R6RS hashtables API
 may be summarized as follows:
 
 - Support for weak and ephemeral hashtables.
+- External representation for hashtables.
 - A triplet of `alist->hashtable` constructors.
 - The procedures `hashtable-lookup` and `hashtable-intern!`.
 - The procedure `hashtable-clear-copy`.
@@ -254,6 +253,34 @@ argument is an error.
 
 *Rationale:* This allows for expand-time verification that a valid
 weakness attribute is specified.
+
+
+### External representation
+
+An implementation may optionally support external representations for
+the most common types of hashtables so that they can be read and
+written by and appear as constants in programs.
+
+`Eq?` and `eqv?` based hashtables are written using the notation
+`#hasheq(entry ...)` and `#hasheqv(entry ...)` respectively, where
+each `entry` must have the form `(key . value)`.
+
+Hashtables using `equal-hash` as the hash function and `equal?` as the
+equivalence function may be written using the notation `#hash(entry
+...)`.  Other types of hashtables may be written using the notation
+`#hash(type entry ...)` where `type` must be one of: `string`,
+`string-ci`, and `symbol`.  When `type` is `string`, the hashtable
+uses `string-hash` and `string=?` as the hash and equivalence function
+respectively.  When `string-ci`, it uses `string-ci-hash` and
+`string-ci=?`.  When `symbol`, it uses `symbol-hash` and `eq?`.
+
+It is an error if any two keys in the list of entries are equivalent
+as per the equivalence function of the hashtable.
+
+Hashtable constants are self-evaluating, meaning they do not need to
+be quoted in programs.  The resulting hashtable must be immutable, and
+its weakness `#f`.  The keys and values in the hashtable may be
+immutable.
 
 
 ### Procedures
@@ -560,6 +587,9 @@ library code.  They need to be implemented either directly at the
 platform level, or by using functionality which in turn needs to be
 implemented at the platform level, such as weak and ephemeral pairs.
 See MIT/GNU Scheme for an example.
+
+External representation cannot be implemented by portable library
+code.
 
 
 Acknowledgments
