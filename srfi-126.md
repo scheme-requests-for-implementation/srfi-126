@@ -95,7 +95,7 @@ programmer's responsibility to ensure that the hash function is
 compatible with the equivalence function, which is a procedure that
 accepts two keys and returns true if they are equivalent and `#f`
 otherwise.  Standard hashtables for arbitrary objects based on the
-`eq?` and `eqv?` predicates (see report section on “Equivalence
+`eq?` and `eqv?` predicates (see R7RS section on “Equivalence
 predicates”) are provided.  Also, hash functions for arbitrary
 objects, strings, and symbols are provided.
 
@@ -140,9 +140,9 @@ key nor value from outside the hashtable.  In contrast, a
 weak-key-and-value hashtable will delete an association as soon as
 either the key or value is reclaimed.
 
-This section uses the hashtable parameter name for arguments that must
-be hashtables, and the key parameter name for arguments that must be
-hashtable keys.
+This document uses the `hashtable` parameter name for arguments that
+must be hashtables, and the `key` parameter name for arguments that
+must be hashtable keys.
 
 
 ### Constructors
