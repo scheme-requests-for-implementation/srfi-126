@@ -37,8 +37,12 @@ Rationale
 
 This specification provides an alternative to SRFI-125.  It builds on
 the R6RS hashtables API instead of SRFI-69, with only a few, fully
-backwards compatible additions, most notably for weak and ephemeral
-hashtable support.
+backwards compatible additions, most notably weak and ephemeral
+hashtables.  Other additions are limited to utility procedures, whose
+criteria for inclusion are that they be:
+
+- used frequently in typical user code, and/or
+- essential for the efficient implementation of further operations.
 
 There is "full" backwards compatibility in the sense that all R6RS
 hashtable operations within a piece of code that execute without
