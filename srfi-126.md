@@ -350,6 +350,7 @@ The `hashtable-for-each` procedure applies `proc` once for every
 association in `hashtable`, passing it the key and value as arguments.
 The order in which `proc` is applied to the associations is
 unspecified.  Return values of `proc` are ignored.
+`Hashtable-for-each` returns an unspecified value.
 
 - `(hashtable-map! proc hashtable)` (procedure)
 
@@ -358,7 +359,8 @@ should not mutate `hashtable`.  The `hashtable-map!` procedure applies
 `proc` once for every association in `hashtable`, passing it the key
 and value as arguments, and changes the value of the association to
 the return value of `proc`.  The order in which `proc` is applied to
-the associations is unspecified.
+the associations is unspecified.  `Hashtable-map!` returns an
+unspecified value.
 
 - `(hashtable-fold proc init hashtable)` (procedure)
 

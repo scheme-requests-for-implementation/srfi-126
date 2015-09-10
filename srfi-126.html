@@ -169,11 +169,11 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <ul>
 <li><code>(hashtable-for-each proc hashtable)</code> (procedure)</li>
 </ul>
-<p><code>Proc</code> should accept two arguments, and should not mutate <code>hashtable</code>. The <code>hashtable-for-each</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments. The order in which <code>proc</code> is applied to the associations is unspecified. Return values of <code>proc</code> are ignored.</p>
+<p><code>Proc</code> should accept two arguments, and should not mutate <code>hashtable</code>. The <code>hashtable-for-each</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments. The order in which <code>proc</code> is applied to the associations is unspecified. Return values of <code>proc</code> are ignored. <code>Hashtable-for-each</code> returns an unspecified value.</p>
 <ul>
 <li><code>(hashtable-map! proc hashtable)</code> (procedure)</li>
 </ul>
-<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map!</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and changes the value of the association to the return value of <code>proc</code>. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
+<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map!</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and changes the value of the association to the return value of <code>proc</code>. The order in which <code>proc</code> is applied to the associations is unspecified. <code>Hashtable-map!</code> returns an unspecified value.</p>
 <ul>
 <li><code>(hashtable-fold proc init hashtable)</code> (procedure)</li>
 </ul>
