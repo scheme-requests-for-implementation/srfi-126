@@ -61,7 +61,7 @@ by providing dedicated constructors for `eq?` and `eqv?` based
 hashtables, and returning `#f` when their hashing function is queried.
 
 This specification also does not depend on SRFI-114 (Comparators),
-does not specify a spurious amount of utility functions, does not
+does not specify a spurious amount of utility procedures, does not
 describe a bimap API, and does not attempt to specify thread-safety
 because typical multi-threaded use-cases will most likely involve
 locking more than just accesses and mutations of hashtables.
