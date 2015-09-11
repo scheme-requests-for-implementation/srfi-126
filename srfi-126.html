@@ -40,6 +40,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li>Support for weak and ephemeral hashtables.</li>
 <li>A triplet of <code>alist-&gt;hashtable</code> constructors.</li>
 <li>The procedures <code>hashtable-lookup</code> and <code>hashtable-intern!</code>.</li>
+<li>The procedure <code>hashtable-clear-copy</code>.</li>
 <li>Addition of the missing <code>hashtable-values</code> procedure.</li>
 <li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-fold</code> and <code>hashtable-map-&gt;list</code>.</li>
 <li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-&gt;alist</code>.</li>
@@ -73,7 +74,8 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(make-hashtable hash-function equiv k)</code></li>
 <li><code>(make-hashtable hash-function equiv k weakness)</code></li>
 </ul>
-<p><code>Hash-function</code> and <code>equiv</code> must be procedures. <code>Hash-function</code> should accept a key as an argument and should return a non-negative exact integer object. <code>Equiv</code> should accept two keys as arguments and return a single value. Neither procedure should mutate the hashtable returned by <code>make-hashtable</code>. The <code>make-hashtable</code> procedure returns a newly allocated mutable hashtable using <code>hash-function</code> as the hash function and <code>equiv</code> as the equivalence function used to compare keys. The semantics of the remaining arguments are as in <code>make-eq-hashtable</code> and <code>make-eqv-hashtable</code>.</p>
+<p>If <code>hash-function</code> is <code>#f</code> and <code>equiv</code> is the <code>eq?</code> procedure, the semantics of <code>make-eq-hashtable</code> apply to the rest of the arguments. If <code>hash-function</code> is <code>#f</code> and <code>equiv</code> is the <code>eqv?</code> procedure, the semantics of <code>make-eqv-hashtable</code> apply to the rest of the arguments.</p>
+<p>Otherwise, <code>hash-function</code> and <code>equiv</code> must be procedures. <code>Hash-function</code> should accept a key as an argument and should return a non-negative exact integer object. <code>Equiv</code> should accept two keys as arguments and return a single value. Neither procedure should mutate the hashtable returned by <code>make-hashtable</code>. The <code>make-hashtable</code> procedure returns a newly allocated mutable hashtable using <code>hash-function</code> as the hash function and <code>equiv</code> as the equivalence function used to compare keys. The semantics of the remaining arguments are as in <code>make-eq-hashtable</code> and <code>make-eqv-hashtable</code>.</p>
 <p>Both <code>hash-function</code> and <code>equiv</code> should behave like pure functions on the domain of keys. For example, the <code>string-hash</code> and <code>string=?</code> procedures are permissible only if all keys are strings and the contents of those strings are never changed so long as any of them continues to serve as a key in the hashtable. Furthermore, any pair of keys for which <code>equiv</code> returns true should be hashed to the same exact integer objects by <code>hash-function</code>.</p>
 <p><em>Note:</em> Hashtables are allowed to cache the results of calling the hash function and equivalence function, so programs cannot rely on the hash function being called for every lookup or update. Furthermore any hashtable operation may call the hash function more than once.</p>
 <ul>
@@ -153,6 +155,11 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(hashtable-clear! hashtable k)</code></li>
 </ul>
 <p>Removes all associations from <code>hashtable</code> and returns an unspecified value. If <code>k</code> is provided and not <code>#f</code>, the current capacity of the hashtable is reset to approximately <code>k</code> elements.</p>
+<ul>
+<li><code>(hashtable-clear-copy hashtable)</code></li>
+<li><code>(hashtable-clear-copy hashtable k)</code></li>
+</ul>
+<p>Returns a newly allocated mutable hashtable that has the same hash and equivalence functions and weakness attribute as <code>hashtable</code>. The <code>k</code> argument may be <code>#t</code> to set the initial capacity of the copy to approximately <code>(hashtable-size hashtable)</code> elements; otherwise the semantics of <code>make-eq-hashtable</code> apply to the <code>k</code> argument.</p>
 <ul>
 <li><code>(hashtable-keys hashtable)</code> (procedure)</li>
 </ul>
@@ -256,6 +263,17 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
       (let ((value (default-proc)))
         (hashtable-set! ht key value)
         value)))</code></pre>
+<p>The <code>hashtable-clear-copy</code> procedure can be implemented as follows:</p>
+<pre><code>(define hashtable-clear-copy
+  (case-lambda
+    ((hashtable) (hashtable-clear-copy hashtable #f))
+    ((hashtable capacity)
+     (make-hashtable (hashtable-hash-function hashtable)
+                     (hashtable-equivalence-function hashtable)
+                     (if (eq? #t capacity)
+                         (hashtable-size hashtable)
+                         capacity)
+                     (hashtable-weakness hashtable)))))</code></pre>
 <p>The <code>hashtable-values</code>, <code>hashtable-for-each</code>, and <code>hashtable-map!</code> procedures are simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that they be implemented more efficiently at the platform level.</p>
 <p>The <code>hashtable-fold</code> procedure could be implemented in terms of <code>hashtable-entries</code>, <code>vector-&gt;list</code>, and <code>fold</code>, but it is definitely desirable to implement it more efficiently. Given an efficient <code>hashtable-fold</code>, the following definitions can be used:</p>
 <pre><code>(define (hashtable-map-&gt;list proc ht)

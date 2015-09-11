@@ -76,6 +76,7 @@ may be summarized as follows:
 - Support for weak and ephemeral hashtables.
 - A triplet of `alist->hashtable` constructors.
 - The procedures `hashtable-lookup` and `hashtable-intern!`.
+- The procedure `hashtable-clear-copy`.
 - Addition of the missing `hashtable-values` procedure.
 - The procedures `hashtable-for-each`, `hashtable-map!`,
   `hashtable-fold` and `hashtable-map->list`.
@@ -186,15 +187,20 @@ any point in a program.
 - `(make-hashtable hash-function equiv k)`
 - `(make-hashtable hash-function equiv k weakness)`
 
-`Hash-function` and `equiv` must be procedures.  `Hash-function`
-should accept a key as an argument and should return a non-negative
-exact integer object.  `Equiv` should accept two keys as arguments and
-return a single value.  Neither procedure should mutate the hashtable
-returned by `make-hashtable`.  The `make-hashtable` procedure returns
-a newly allocated mutable hashtable using `hash-function` as the hash
-function and `equiv` as the equivalence function used to compare
-keys.  The semantics of the remaining arguments are as in
-`make-eq-hashtable` and `make-eqv-hashtable`.
+If `hash-function` is `#f` and `equiv` is the `eq?` procedure, the
+semantics of `make-eq-hashtable` apply to the rest of the arguments.
+If `hash-function` is `#f` and `equiv` is the `eqv?` procedure, the
+semantics of `make-eqv-hashtable` apply to the rest of the arguments.
+
+Otherwise, `hash-function` and `equiv` must be procedures.
+`Hash-function` should accept a key as an argument and should return a
+non-negative exact integer object.  `Equiv` should accept two keys as
+arguments and return a single value.  Neither procedure should mutate
+the hashtable returned by `make-hashtable`.  The `make-hashtable`
+procedure returns a newly allocated mutable hashtable using
+`hash-function` as the hash function and `equiv` as the equivalence
+function used to compare keys.  The semantics of the remaining
+arguments are as in `make-eq-hashtable` and `make-eqv-hashtable`.
 
 Both `hash-function` and `equiv` should behave like pure functions on
 the domain of keys.  For example, the `string-hash` and `string=?`
@@ -322,6 +328,15 @@ of `hashtable` is used.
 Removes all associations from `hashtable` and returns an unspecified
 value.  If `k` is provided and not `#f`, the current capacity of the
 hashtable is reset to approximately `k` elements.
+
+- `(hashtable-clear-copy hashtable)`
+- `(hashtable-clear-copy hashtable k)`
+
+Returns a newly allocated mutable hashtable that has the same hash and
+equivalence functions and weakness attribute as `hashtable`.  The `k`
+argument may be `#t` to set the initial capacity of the copy to
+approximately `(hashtable-size hashtable)` elements; otherwise the
+semantics of `make-eq-hashtable` apply to the `k` argument.
 
 - `(hashtable-keys hashtable)` (procedure)
 
@@ -501,6 +516,19 @@ efficiently at the platform level:
           (let ((value (default-proc)))
             (hashtable-set! ht key value)
             value)))
+
+The `hashtable-clear-copy` procedure can be implemented as follows:
+
+    (define hashtable-clear-copy
+      (case-lambda
+        ((hashtable) (hashtable-clear-copy hashtable #f))
+        ((hashtable capacity)
+         (make-hashtable (hashtable-hash-function hashtable)
+                         (hashtable-equivalence-function hashtable)
+                         (if (eq? #t capacity)
+                             (hashtable-size hashtable)
+                             capacity)
+                         (hashtable-weakness hashtable)))))
 
 The `hashtable-values`, `hashtable-for-each`, and `hashtable-map!`
 procedures are simple to implement in terms of `hashtable-entries`,
