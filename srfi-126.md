@@ -630,6 +630,27 @@ The `hashtable-values`, `hashtable-for-each`, `hashtable-map!`, and
 `hashtable-entries`, but it is desirable that they be implemented more
 efficiently at the platform level.
 
+    (define (hashtable-values ht)
+      (let-values (((keys values) (hashtable-entries ht)))
+        values))
+
+    (define (hashtable-for-each proc ht)
+      (let-values (((keys values) (hashtable-entries ht)))
+        (vector-for-each proc keys values)))
+
+    (define (hashtable-map! proc ht)
+      (let-values (((keys values) (hashtable-entries ht)))
+        (vector-for-each (lambda (key value)
+                           (hashtable-set! ht key (proc key value)))
+                         keys values)))
+
+    (define (hashtable-prune! proc ht)
+      (let-values (((keys values) (hashtable-entries ht)))
+        (vector-for-each (lambda (key value)
+                           (when (proc key value)
+                             (hashtable-delete! key)))
+                         keys values)))
+
 The `hashtable-fold` procedure could be implemented in terms of
 `hashtable-entries`, `vector->list`, and `fold`, but it is definitely
 desirable to implement it more efficiently.  Given an efficient
@@ -650,11 +671,25 @@ desirable to implement it more efficiently.  Given an efficient
     (define (hashtable->alist ht)
       (hashtable-map->list cons ht))
 
-The `hashtable-find` and `hashtable-search` procedures are simple to
-implement in terms of `hashtable-entries`, but it is desirable that
-they be implemented more efficiently at the platform level.
+The `hashtable-search` procedure is simple to implement in terms of
+`hashtable-entries`, but it is desirable that it be implemented more
+efficiently at the platform level.
+
+    (define (hashtable-search proc ht)
+      (let* ((alist (hashtable->alist ht))
+             (found-tail (find-tail (lambda (pair)
+                                      (proc (car pair) (cdr pair)))
+                                    alist)))
+        (if found-tail
+            (values (car found-tail) #t)
+            (values #f #f))))
+
 `Hashtable-find` can be implemented trivially in terms of an efficient
 `hashtable-search`.
+
+    (define (hashtable-find proc ht default)
+      (let-values (((result found?) (hashtable-search ht proc)))
+        (if found? result default)))
 
 Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the
