@@ -27,18 +27,21 @@ Abstract
 
 We provide a hashtable API that takes the R6RS hashtables API as a
 basis and makes backwards compatible additions such as support for
-weak hashtables.  The API is backwards compatible insofar the R6RS's
-prohibition of extending the domains of its procedures is not taken
-seriously.
+weak hashtables, external representation, and utility procedures.
 
 
 Rationale
 ---------
 
 This specification provides an alternative to SRFI-125.  It builds on
-the R6RS hashtables API instead of SRFI-69, with only a few, fully
-backwards compatible additions, most notably for weak and ephemeral
-hashtable support.
+the R6RS hashtables API instead of SRFI-69, with only fully backwards
+compatible additions, most notably weak and ephemeral hashtables, and
+external representation.  Other additions are limited to utility
+procedures, whose criteria for inclusion are that they be:
+
+- used frequently in typical user code, or
+- nontrivial to define or imitate when needed, or
+- essential for the efficient implementation of further operations.
 
 There is "full" backwards compatibility in the sense that all R6RS
 hashtable operations within a piece of code that execute without
@@ -50,18 +53,18 @@ correspond to the description in R6RS (which effectively prohibits
 extensions to its procedures' semantics) is ignored.
 
 The R6RS hashtables API is favored over SRFI-69 because the latter
-contains serious flaws.  In particular, exposing the hashing functions
+contains serious flaws.  In particular, exposing the hash functions
 for the `eq?` and `eqv?` procedures is a hindrance for Scheme
 implementations with a moving garbage collector.  SRFI-125 works
-around this by allowing the user-provided hashing function passed to
+around this by allowing the user-provided hash function passed to
 `make-hash-table` to be ignored by the implementation, and allowing
 the `hash-table-hash-function` procedure to return `#f` instead of the
-hashing function passed to `make-hash-table`.  R6RS avoids the issue
-by providing dedicated constructors for `eq?` and `eqv?` based
-hashtables, and returning `#f` when their hashing function is queried.
+hash function passed to `make-hash-table`.  R6RS avoids the issue by
+providing dedicated constructors for `eq?` and `eqv?` based
+hashtables, and returning `#f` when their hash function is queried.
 
 This specification also does not depend on SRFI-114 (Comparators),
-does not specify a spurious amount of utility functions, does not
+does not specify a spurious amount of utility procedures, does not
 describe a bimap API, and does not attempt to specify thread-safety
 because typical multi-threaded use-cases will most likely involve
 locking more than just accesses and mutations of hashtables.
@@ -70,11 +73,14 @@ The additions made by this specification to the R6RS hashtables API
 may be summarized as follows:
 
 - Support for weak and ephemeral hashtables.
+- External representation for hashtables.
 - A triplet of `alist->hashtable` constructors.
 - The procedures `hashtable-lookup` and `hashtable-intern!`.
+- The procedure `hashtable-clear-copy`.
 - Addition of the missing `hashtable-values` procedure.
 - The procedures `hashtable-for-each`, `hashtable-map!`,
-  `hashtable-fold` and `hashtable-map->list`.
+  `hashtable-prune!`, `hashtable-fold`, `hashtable-map->list`,
+  `hashtable-find`, and `hashtable-search`.
 - The procedures `hashtable-key-list`, `hashtable-value-list`, and
   `hashtable->alist`.
 
@@ -95,7 +101,7 @@ programmer's responsibility to ensure that the hash function is
 compatible with the equivalence function, which is a procedure that
 accepts two keys and returns true if they are equivalent and `#f`
 otherwise.  Standard hashtables for arbitrary objects based on the
-`eq?` and `eqv?` predicates (see report section on “Equivalence
+`eq?` and `eqv?` predicates (see R7RS section on “Equivalence
 predicates”) are provided.  Also, hash functions for arbitrary
 objects, strings, and symbols are provided.
 
@@ -140,29 +146,37 @@ key nor value from outside the hashtable.  In contrast, a
 weak-key-and-value hashtable will delete an association as soon as
 either the key or value is reclaimed.
 
-This section uses the hashtable parameter name for arguments that must
-be hashtables, and the key parameter name for arguments that must be
-hashtable keys.
+Support for all types of weak and ephemeral hashtables is optional, to
+aid in adoption of the SRFI by smaller Scheme implementations which
+would otherwise disregard the SRFI entirely.
+
+This document uses the `hashtable` parameter name for arguments that
+must be hashtables, and the `key` parameter name for arguments that
+must be hashtable keys.
 
 
 ### Constructors
 
 - `(make-eq-hashtable)` (procedure)
-- `(make-eq-hashtable k)`
-- `(make-eq-hashtable k weakness)`
+- `(make-eq-hashtable capacity)`
+- `(make-eq-hashtable capacity weakness)`
 
 Returns a newly allocated mutable hashtable that accepts arbitrary
-objects as keys, and compares those keys with `eq?`.  If the `k`
-argument is provided and not `#f`, the initial capacity of the
-hashtable is set to approximately `k` elements.  The `weakness`
-argument, if provided, must be one of: `#f`, `weak-key`, `weak-value`,
+objects as keys, and compares those keys with `eq?`.  If the
+`capacity` argument is provided and not `#f`, it must be an exact
+non-negative integer and the initial capacity of the hashtable is set
+to approximately `capacity` elements.  The `weakness` argument, if
+provided, must be one of: `#f`, `weak-key`, `weak-value`,
 `weak-key-and-value`, `ephemeral-key`, `ephemeral-value`, and
 `ephemeral-key-and-value`, and determines the weakness or ephemeral
-status for the keys and values in the hashtable.
+status for the keys and values in the hashtable.  All values other
+than `#f` are optional to support; the implementation should signal
+the user in an implementation-defined manner when an unsupported value
+is used.
 
 - `(make-eqv-hashtable)` (procedure)
-- `(make-eqv-hashtable k)`
-- `(make-eqv-hashtable k weakness)`
+- `(make-eqv-hashtable capacity)`
+- `(make-eqv-hashtable capacity weakness)`
 
 Returns a newly allocated mutable hashtable that accepts arbitrary
 objects as keys, and compares those keys with `eqv?`.  The semantics
@@ -179,18 +193,23 @@ that is `eqv?` to a previously alive instance may be reallocated at
 any point in a program.
 
 - `(make-hashtable hash-function equiv)` (procedure)
-- `(make-hashtable hash-function equiv k)`
-- `(make-hashtable hash-function equiv k weakness)`
+- `(make-hashtable hash-function equiv capacity)`
+- `(make-hashtable hash-function equiv capacity weakness)`
 
-`Hash-function` and `equiv` must be procedures.  `Hash-function`
-should accept a key as an argument and should return a non-negative
-exact integer object.  `Equiv` should accept two keys as arguments and
-return a single value.  Neither procedure should mutate the hashtable
-returned by `make-hashtable`.  The `make-hashtable` procedure returns
-a newly allocated mutable hashtable using `hash-function` as the hash
-function and `equiv` as the equivalence function used to compare
-keys.  The semantics of the remaining arguments are as in
-`make-eq-hashtable` and `make-eqv-hashtable`.
+If `hash-function` is `#f` and `equiv` is the `eq?` procedure, the
+semantics of `make-eq-hashtable` apply to the rest of the arguments.
+If `hash-function` is `#f` and `equiv` is the `eqv?` procedure, the
+semantics of `make-eqv-hashtable` apply to the rest of the arguments.
+
+Otherwise, `hash-function` and `equiv` must be procedures.
+`Hash-function` should accept a key as an argument and should return a
+non-negative exact integer object.  `Equiv` should accept two keys as
+arguments and return a single value.  Neither procedure should mutate
+the hashtable returned by `make-hashtable`.  The `make-hashtable`
+procedure returns a newly allocated mutable hashtable using
+`hash-function` as the hash function and `equiv` as the equivalence
+function used to compare keys.  The semantics of the remaining
+arguments are as in `make-eq-hashtable` and `make-eqv-hashtable`.
 
 Both `hash-function` and `equiv` should behave like pure functions on
 the domain of keys.  For example, the `string-hash` and `string=?`
@@ -206,30 +225,30 @@ hash function being called for every lookup or update.  Furthermore
 any hashtable operation may call the hash function more than once.
 
 - `(alist->eq-hashtable alist)` (procedure)
-- `(alist->eq-hashtable k alist)`
-- `(alist->eq-hashtable k weakness alist)`
+- `(alist->eq-hashtable capacity alist)`
+- `(alist->eq-hashtable capacity weakness alist)`
 
 The semantics of this procedure can be described as:
 
-    (let ((ht (make-eq-hashtable k weakness)))
+    (let ((ht (make-eq-hashtable capacity weakness)))
       (for-each (lambda (entry)
                   (hashtable-set! ht (car entry) (cdr entry)))
                 alist)
       ht)
 
-where omission of the `k` and/or `weakness` arguments corresponds to
-their omission in the call to `make-eq-hashtable`.
+where omission of the `capacity` and/or `weakness` arguments
+corresponds to their omission in the call to `make-eq-hashtable`.
 
 - `(alist->eqv-hashtable alist)` (procedure)
-- `(alist->eqv-hashtable k alist)`
-- `(alist->eqv-hashtable k weakness alist)`
+- `(alist->eqv-hashtable capacity alist)`
+- `(alist->eqv-hashtable capacity weakness alist)`
 
 This procedure is equivalent to `alist->eq-hashtable` except that
 `make-eqv-hashtable` is used to construct the hashtable.
 
 - `(alist->hashtable hash-function equiv alist)` (procedure)
-- `(alist->hashtable hash-function equiv k alist)`
-- `(alist->hashtable hash-function equiv k weakness alist)`
+- `(alist->hashtable hash-function equiv capacity alist)`
+- `(alist->hashtable hash-function equiv capacity weakness alist)`
 
 This procedure is equivalent to `alist->eq-hashtable` except that
 `make-hashtable` is used to construct the hashtable, with the given
@@ -244,6 +263,56 @@ argument is an error.
 
 *Rationale:* This allows for expand-time verification that a valid
 weakness attribute is specified.
+
+
+### External representation
+
+An implementation may optionally support external representations for
+the most common types of hashtables so that they can be read and
+written by and appear as constants in programs.
+
+`Eq?` and `eqv?` based hashtables are written using the notation
+`#hasheq(entry ...)` and `#hasheqv(entry ...)` respectively, where
+each `entry` must have the form `(key . value)`.
+
+Hashtables using `equal-hash` as the hash function and `equal?` as the
+equivalence function may be written using the notation `#hash(entry
+...)`.  Other types of hashtables may be written using the notation
+`#hash(type entry ...)` where `type` must be one of: `string`,
+`string-ci`, and `symbol`.  When `type` is `string`, the hashtable
+uses `string-hash` and `string=?` as the hash and equivalence function
+respectively.  When `string-ci`, it uses `string-ci-hash` and
+`string-ci=?`.  When `symbol`, it uses `symbol-hash` and `eq?`.
+
+It is an error if any two keys in the list of entries are equivalent
+as per the equivalence function of the hashtable.
+
+Hashtable constants are self-evaluating, meaning they do not need to
+be quoted in programs.  The resulting hashtable must be immutable, and
+its weakness `#f`.  The keys and values in the hashtable may be
+immutable.
+
+
+### Quasiquote
+
+An implementation supporting external representation for hashtables
+may optionally extend `quasiquote` for hashtable constants.
+
+When a hashtable constant appears within a quasiquote expression and
+is not already unquoted, the behavior of the quasiquote algorithm on
+the hashtable can be explained as follows:
+
+    (let ((copy (hashtable-clear-copy hashtable #t)))
+      (hashtable-for-each (lambda (key value)
+                            (let ((key (apply-quasiquote key))
+                                  (value (apply-quasiquote value)))
+                              (hashtable-set! copy key value)))
+                          hashtable)
+      ;; Make it immutable again.
+      (hashtable-copy copy))
+
+where the procedure `apply-quasiquote` recursively applies the
+quasiquote algorithm to the key and value.
 
 
 ### Procedures
@@ -313,11 +382,21 @@ determines the weakness of the copy, otherwise the weakness attribute
 of `hashtable` is used.
 
 - `(hashtable-clear! hashtable)` (procedure)
-- `(hashtable-clear! hashtable k)`
+- `(hashtable-clear! hashtable capacity)`
 
 Removes all associations from `hashtable` and returns an unspecified
-value.  If `k` is provided and not `#f`, the current capacity of the
-hashtable is reset to approximately `k` elements.
+value.  If `capacity` is provided and not `#f`, it must be an exact
+non-negative integer and the current capacity of the hashtable is
+reset to approximately `capacity` elements.
+
+- `(hashtable-clear-copy hashtable)`
+- `(hashtable-clear-copy hashtable capacity)`
+
+Returns a newly allocated mutable hashtable that has the same hash and
+equivalence functions and weakness attribute as `hashtable`.  The
+`capacity` argument may be `#t` to set the initial capacity of the
+copy to approximately `(hashtable-size hashtable)` elements; otherwise
+the semantics of `make-eq-hashtable` apply to the `capacity` argument.
 
 - `(hashtable-keys hashtable)` (procedure)
 
@@ -346,6 +425,7 @@ The `hashtable-for-each` procedure applies `proc` once for every
 association in `hashtable`, passing it the key and value as arguments.
 The order in which `proc` is applied to the associations is
 unspecified.  Return values of `proc` are ignored.
+`Hashtable-for-each` returns an unspecified value.
 
 - `(hashtable-map! proc hashtable)` (procedure)
 
@@ -354,7 +434,24 @@ should not mutate `hashtable`.  The `hashtable-map!` procedure applies
 `proc` once for every association in `hashtable`, passing it the key
 and value as arguments, and changes the value of the association to
 the return value of `proc`.  The order in which `proc` is applied to
-the associations is unspecified.
+the associations is unspecified.  `Hashtable-map!` returns an
+unspecified value.
+
+- `(hashtable-prune! proc hashtable)` (procedure)
+
+`Proc` should accept two arguments, should return a single value, and
+should not mutate `hashtable`.  The `hashtable-prune!` procedure
+applies `proc` once for every association in `hashtable`, passing it
+the key and value as arguments, and deletes the association if `proc`
+returns a true value.  The order in which `proc` is applied to the
+associations is unspecified.  `Hashtable-prune!` returns an
+unspecified value.
+
+*Rationale:* This procedure is provided in place of a typical "filter"
+and "remove" pair because the name "remove" may easily be confused
+with "delete," and because the semantics of a mutative filtering
+operation, which is to select elements to keep and remove the rest,
+counters the human intuition of selecting elements to remove.
 
 - `(hashtable-fold proc init hashtable)` (procedure)
 
@@ -374,6 +471,25 @@ applies `proc` once for every association in `hashtable`, passing it
 the key and value as arguments, and accumulates the returned values
 into a list.  The order in which `proc` is applied to the associations
 is unspecified.
+
+- `(hashtable-find proc hashtable default)` (procedure)
+
+`Proc` should accept two arguments, should return a single value, and
+should not mutate `hashtable`.  The `hashtable-find` procedure applies
+`proc` to associations in `hashtable` in an unspecified order until
+one of the applications returns a true value, which is then returned.
+If none of the applications return a true value, `default` is
+returned.
+
+- `(hashtable-search proc hashtable)` (procedure)
+
+`Proc` should accept two arguments, should return a single value, and
+should not mutate `hashtable`.  The `hashtable-search` procedure
+applies `proc` to associations in `hashtable` in an unspecified order
+until one of the applications returns a true value.  Two values are
+returned: the true value returned by `proc` or an unspecified value if
+no applications of `proc` returned a true value, and a Boolean
+indicating whether any application returned a true value.
 
 - `(hashtable-key-list hashtable)` (procedure)
 
@@ -472,9 +588,9 @@ definition of `alist->eq-hashtable`:
     (define alist->eq-hashtable
       (case-lambda
         ((alist) (alist->eq-hashtable #f #f alist))
-        ((k alist) (alist->eq-hashtable k #f alist))
-        ((k weakness alist)
-         (let ((ht (make-eq-hashtable k weakness)))
+        ((capacity alist) (alist->eq-hashtable capacity #f alist))
+        ((capacity weakness alist)
+         (let ((ht (make-eq-hashtable capacity weakness)))
            (for-each (lambda (entry)
                        (hashtable-set! ht (car entry) (cdr entry)))
                      alist)
@@ -496,10 +612,44 @@ efficiently at the platform level:
             (hashtable-set! ht key value)
             value)))
 
-The `hashtable-values`, `hashtable-for-each`, and `hashtable-map!`
-procedures are simple to implement in terms of `hashtable-entries`,
-but it is desirable that they be implemented more efficiently at the
-platform level.
+The `hashtable-clear-copy` procedure can be implemented as follows:
+
+    (define hashtable-clear-copy
+      (case-lambda
+        ((hashtable) (hashtable-clear-copy hashtable #f))
+        ((hashtable capacity)
+         (make-hashtable (hashtable-hash-function hashtable)
+                         (hashtable-equivalence-function hashtable)
+                         (if (eq? #t capacity)
+                             (hashtable-size hashtable)
+                             capacity)
+                         (hashtable-weakness hashtable)))))
+
+The `hashtable-values`, `hashtable-for-each`, `hashtable-map!`, and
+`hashtable-prune!` procedures are simple to implement in terms of
+`hashtable-entries`, but it is desirable that they be implemented more
+efficiently at the platform level.
+
+    (define (hashtable-values ht)
+      (let-values (((keys values) (hashtable-entries ht)))
+        values))
+
+    (define (hashtable-for-each proc ht)
+      (let-values (((keys values) (hashtable-entries ht)))
+        (vector-for-each proc keys values)))
+
+    (define (hashtable-map! proc ht)
+      (let-values (((keys values) (hashtable-entries ht)))
+        (vector-for-each (lambda (key value)
+                           (hashtable-set! ht key (proc key value)))
+                         keys values)))
+
+    (define (hashtable-prune! proc ht)
+      (let-values (((keys values) (hashtable-entries ht)))
+        (vector-for-each (lambda (key value)
+                           (when (proc key value)
+                             (hashtable-delete! key)))
+                         keys values)))
 
 The `hashtable-fold` procedure could be implemented in terms of
 `hashtable-entries`, `vector->list`, and `fold`, but it is definitely
@@ -521,11 +671,34 @@ desirable to implement it more efficiently.  Given an efficient
     (define (hashtable->alist ht)
       (hashtable-map->list cons ht))
 
+The `hashtable-search` procedure is simple to implement in terms of
+`hashtable-entries`, but it is desirable that it be implemented more
+efficiently at the platform level.
+
+    (define (hashtable-search proc ht)
+      (let* ((alist (hashtable->alist ht))
+             (found-tail (find-tail (lambda (pair)
+                                      (proc (car pair) (cdr pair)))
+                                    alist)))
+        (if found-tail
+            (values (car found-tail) #t)
+            (values #f #f))))
+
+`Hashtable-find` can be implemented trivially in terms of an efficient
+`hashtable-search`.
+
+    (define (hashtable-find proc ht default)
+      (let-values (((result found?) (hashtable-search ht proc)))
+        (if found? result default)))
+
 Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the
 platform level, or by using functionality which in turn needs to be
 implemented at the platform level, such as weak and ephemeral pairs.
 See MIT/GNU Scheme for an example.
+
+External representation cannot be implemented by portable library
+code.
 
 
 Acknowledgments
