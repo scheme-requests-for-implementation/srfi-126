@@ -283,6 +283,28 @@ its weakness `#f`.  The keys and values in the hashtable may be
 immutable.
 
 
+### Quasiquote
+
+An implementation supporting external representation for hashtables
+may optionally extend `quasiquote` for hashtable constants.
+
+When a hashtable constant appears within a quasiquote expression and
+is not already unquoted, the behavior of the quasiquote algorithm on
+the hashtable can be explained as follows:
+
+    (let ((copy (hashtable-clear-copy hashtable #t)))
+      (hashtable-for-each (lambda (key value)
+                            (let ((key (apply-quasiquote key))
+                                  (value (apply-quasiquote value)))
+                              (hashtable-set! copy key value)))
+                          hashtable)
+      ;; Make it immutable again.
+      (hashtable-copy copy))
+
+where the procedure `apply-quasiquote` recursively applies the
+quasiquote algorithm to the key and value.
+
+
 ### Procedures
 
 - `(hashtable? obj)` (procedure)

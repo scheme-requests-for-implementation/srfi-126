@@ -114,6 +114,18 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>Hashtables using <code>equal-hash</code> as the hash function and <code>equal?</code> as the equivalence function may be written using the notation <code>#hash(entry ...)</code>. Other types of hashtables may be written using the notation <code>#hash(type entry ...)</code> where <code>type</code> must be one of: <code>string</code>, <code>string-ci</code>, and <code>symbol</code>. When <code>type</code> is <code>string</code>, the hashtable uses <code>string-hash</code> and <code>string=?</code> as the hash and equivalence function respectively. When <code>string-ci</code>, it uses <code>string-ci-hash</code> and <code>string-ci=?</code>. When <code>symbol</code>, it uses <code>symbol-hash</code> and <code>eq?</code>.</p>
 <p>It is an error if any two keys in the list of entries are equivalent as per the equivalence function of the hashtable.</p>
 <p>Hashtable constants are self-evaluating, meaning they do not need to be quoted in programs. The resulting hashtable must be immutable, and its weakness <code>#f</code>. The keys and values in the hashtable may be immutable.</p>
+<h3 id="quasiquote">Quasiquote</h3>
+<p>An implementation supporting external representation for hashtables may optionally extend <code>quasiquote</code> for hashtable constants.</p>
+<p>When a hashtable constant appears within a quasiquote expression and is not already unquoted, the behavior of the quasiquote algorithm on the hashtable can be explained as follows:</p>
+<pre><code>(let ((copy (hashtable-clear-copy hashtable #t)))
+  (hashtable-for-each (lambda (key value)
+                        (let ((key (apply-quasiquote key))
+                              (value (apply-quasiquote value)))
+                          (hashtable-set! copy key value)))
+                      hashtable)
+  ;; Make it immutable again.
+  (hashtable-copy copy))</code></pre>
+<p>where the procedure <code>apply-quasiquote</code> recursively applies the quasiquote algorithm to the key and value.</p>
 <h3 id="procedures">Procedures</h3>
 <ul>
 <li><code>(hashtable? obj)</code> (procedure)</li>
