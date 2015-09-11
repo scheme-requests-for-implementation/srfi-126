@@ -144,6 +144,10 @@ key nor value from outside the hashtable.  In contrast, a
 weak-key-and-value hashtable will delete an association as soon as
 either the key or value is reclaimed.
 
+Support for all types of weak and ephemeral hashtables is optional, to
+aid in adoption of the SRFI by smaller Scheme implementations which
+would otherwise disregard the SRFI entirely.
+
 This document uses the `hashtable` parameter name for arguments that
 must be hashtables, and the `key` parameter name for arguments that
 must be hashtable keys.
@@ -162,7 +166,10 @@ hashtable is set to approximately `k` elements.  The `weakness`
 argument, if provided, must be one of: `#f`, `weak-key`, `weak-value`,
 `weak-key-and-value`, `ephemeral-key`, `ephemeral-value`, and
 `ephemeral-key-and-value`, and determines the weakness or ephemeral
-status for the keys and values in the hashtable.
+status for the keys and values in the hashtable.  All values other
+than `#f` are optional to support; the implementation should signal
+the user in an implementation-defined manner when an unsupported value
+is used.
 
 - `(make-eqv-hashtable)` (procedure)
 - `(make-eqv-hashtable k)`

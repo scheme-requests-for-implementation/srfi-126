@@ -54,6 +54,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>An implementation may implement weak-key and weak-value hashtables as ephemeral-key and ephemeral-value hashtables.</p>
 <p><em>Rationale:</em> While the semantics of weak-key and weak-value hashtables is undesired, their implementation might be more efficient than ephemeral-key and ephemeral-value hashtables.</p>
 <p>Ephemeral-key-and-value hashtables use a pair of ephemeral storage pairs for each association: one where the key is the first object and one where the value is. This means that the key and value are protected from reclamation until no references remain to neither the key nor value from outside the hashtable. In contrast, a weak-key-and-value hashtable will delete an association as soon as either the key or value is reclaimed.</p>
+<p>Support for all types of weak and ephemeral hashtables is optional, to aid in adoption of the SRFI by smaller Scheme implementations which would otherwise disregard the SRFI entirely.</p>
 <p>This document uses the <code>hashtable</code> parameter name for arguments that must be hashtables, and the <code>key</code> parameter name for arguments that must be hashtable keys.</p>
 <h3 id="constructors">Constructors</h3>
 <ul>
@@ -61,7 +62,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(make-eq-hashtable k)</code></li>
 <li><code>(make-eq-hashtable k weakness)</code></li>
 </ul>
-<p>Returns a newly allocated mutable hashtable that accepts arbitrary objects as keys, and compares those keys with <code>eq?</code>. If the <code>k</code> argument is provided and not <code>#f</code>, the initial capacity of the hashtable is set to approximately <code>k</code> elements. The <code>weakness</code> argument, if provided, must be one of: <code>#f</code>, <code>weak-key</code>, <code>weak-value</code>, <code>weak-key-and-value</code>, <code>ephemeral-key</code>, <code>ephemeral-value</code>, and <code>ephemeral-key-and-value</code>, and determines the weakness or ephemeral status for the keys and values in the hashtable.</p>
+<p>Returns a newly allocated mutable hashtable that accepts arbitrary objects as keys, and compares those keys with <code>eq?</code>. If the <code>k</code> argument is provided and not <code>#f</code>, the initial capacity of the hashtable is set to approximately <code>k</code> elements. The <code>weakness</code> argument, if provided, must be one of: <code>#f</code>, <code>weak-key</code>, <code>weak-value</code>, <code>weak-key-and-value</code>, <code>ephemeral-key</code>, <code>ephemeral-value</code>, and <code>ephemeral-key-and-value</code>, and determines the weakness or ephemeral status for the keys and values in the hashtable. All values other than <code>#f</code> are optional to support; the implementation should signal the user in an implementation-defined manner when an unsupported value is used.</p>
 <ul>
 <li><code>(make-eqv-hashtable)</code> (procedure)</li>
 <li><code>(make-eqv-hashtable k)</code></li>
