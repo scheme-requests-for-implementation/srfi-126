@@ -34,12 +34,13 @@ Rationale
 ---------
 
 This specification provides an alternative to SRFI-125.  It builds on
-the R6RS hashtables API instead of SRFI-69, with only a few, fully
-backwards compatible additions, most notably weak and ephemeral
-hashtables, and external representation.  Other additions are limited
-to utility procedures, whose criteria for inclusion are that they be:
+the R6RS hashtables API instead of SRFI-69, with only fully backwards
+compatible additions, most notably weak and ephemeral hashtables, and
+external representation.  Other additions are limited to utility
+procedures, whose criteria for inclusion are that they be:
 
-- used frequently in typical user code, and/or
+- used frequently in typical user code, or
+- nontrivial to define or imitate when needed, or
 - essential for the efficient implementation of further operations.
 
 There is "full" backwards compatibility in the sense that all R6RS
@@ -78,7 +79,8 @@ may be summarized as follows:
 - The procedure `hashtable-clear-copy`.
 - Addition of the missing `hashtable-values` procedure.
 - The procedures `hashtable-for-each`, `hashtable-map!`,
-  `hashtable-fold` and `hashtable-map->list`.
+  `hashtable-prune!`, `hashtable-fold`, `hashtable-map->list`,
+  `hashtable-find`, and `hashtable-search`.
 - The procedures `hashtable-key-list`, `hashtable-value-list`, and
   `hashtable->alist`.
 
@@ -435,6 +437,22 @@ the return value of `proc`.  The order in which `proc` is applied to
 the associations is unspecified.  `Hashtable-map!` returns an
 unspecified value.
 
+- `(hashtable-prune! proc hashtable)` (procedure)
+
+`Proc` should accept two arguments, should return a single value, and
+should not mutate `hashtable`.  The `hashtable-prune!` procedure
+applies `proc` once for every association in `hashtable`, passing it
+the key and value as arguments, and deletes the association if `proc`
+returns a true value.  The order in which `proc` is applied to the
+associations is unspecified.  `Hashtable-prune!` returns an
+unspecified value.
+
+*Rationale:* This procedure is provided in place of a typical "filter"
+and "remove" pair because the name "remove" may easily be confused
+with "delete," and because the semantics of a mutative filtering
+operation, which is to select elements to keep and remove the rest,
+counters the human intuition of selecting elements to remove.
+
 - `(hashtable-fold proc init hashtable)` (procedure)
 
 `Proc` should accept three arguments, should return a single value,
@@ -453,6 +471,25 @@ applies `proc` once for every association in `hashtable`, passing it
 the key and value as arguments, and accumulates the returned values
 into a list.  The order in which `proc` is applied to the associations
 is unspecified.
+
+- `(hashtable-find proc hashtable default)` (procedure)
+
+`Proc` should accept two arguments, should return a single value, and
+should not mutate `hashtable`.  The `hashtable-find` procedure applies
+`proc` to associations in `hashtable` in an unspecified order until
+one of the applications returns a true value, which is then returned.
+If none of the applications return a true value, `default` is
+returned.
+
+- `(hashtable-search proc hashtable)` (procedure)
+
+`Proc` should accept two arguments, should return a single value, and
+should not mutate `hashtable`.  The `hashtable-search` procedure
+applies `proc` to associations in `hashtable` in an unspecified order
+until one of the applications returns a true value.  Two values are
+returned: the true value returned by `proc` or an unspecified value if
+no applications of `proc` returned a true value, and a Boolean
+indicating whether any application returned a true value.
 
 - `(hashtable-key-list hashtable)` (procedure)
 
@@ -588,10 +625,10 @@ The `hashtable-clear-copy` procedure can be implemented as follows:
                              capacity)
                          (hashtable-weakness hashtable)))))
 
-The `hashtable-values`, `hashtable-for-each`, and `hashtable-map!`
-procedures are simple to implement in terms of `hashtable-entries`,
-but it is desirable that they be implemented more efficiently at the
-platform level.
+The `hashtable-values`, `hashtable-for-each`, `hashtable-map!`, and
+`hashtable-prune!` procedures are simple to implement in terms of
+`hashtable-entries`, but it is desirable that they be implemented more
+efficiently at the platform level.
 
 The `hashtable-fold` procedure could be implemented in terms of
 `hashtable-entries`, `vector->list`, and `fold`, but it is definitely
@@ -612,6 +649,12 @@ desirable to implement it more efficiently.  Given an efficient
 
     (define (hashtable->alist ht)
       (hashtable-map->list cons ht))
+
+The `hashtable-find` and `hashtable-search` procedures are simple to
+implement in terms of `hashtable-entries`, but it is desirable that
+they be implemented more efficiently at the platform level.
+`Hashtable-find` can be implemented trivially in terms of an efficient
+`hashtable-search`.
 
 Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the
