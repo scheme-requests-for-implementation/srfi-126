@@ -156,14 +156,15 @@ must be hashtable keys.
 ### Constructors
 
 - `(make-eq-hashtable)` (procedure)
-- `(make-eq-hashtable k)`
-- `(make-eq-hashtable k weakness)`
+- `(make-eq-hashtable capacity)`
+- `(make-eq-hashtable capacity weakness)`
 
 Returns a newly allocated mutable hashtable that accepts arbitrary
-objects as keys, and compares those keys with `eq?`.  If the `k`
-argument is provided and not `#f`, the initial capacity of the
-hashtable is set to approximately `k` elements.  The `weakness`
-argument, if provided, must be one of: `#f`, `weak-key`, `weak-value`,
+objects as keys, and compares those keys with `eq?`.  If the
+`capacity` argument is provided and not `#f`, it must be an exact
+non-negative integer and the initial capacity of the hashtable is set
+to approximately `capacity` elements.  The `weakness` argument, if
+provided, must be one of: `#f`, `weak-key`, `weak-value`,
 `weak-key-and-value`, `ephemeral-key`, `ephemeral-value`, and
 `ephemeral-key-and-value`, and determines the weakness or ephemeral
 status for the keys and values in the hashtable.  All values other
@@ -172,8 +173,8 @@ the user in an implementation-defined manner when an unsupported value
 is used.
 
 - `(make-eqv-hashtable)` (procedure)
-- `(make-eqv-hashtable k)`
-- `(make-eqv-hashtable k weakness)`
+- `(make-eqv-hashtable capacity)`
+- `(make-eqv-hashtable capacity weakness)`
 
 Returns a newly allocated mutable hashtable that accepts arbitrary
 objects as keys, and compares those keys with `eqv?`.  The semantics
@@ -190,8 +191,8 @@ that is `eqv?` to a previously alive instance may be reallocated at
 any point in a program.
 
 - `(make-hashtable hash-function equiv)` (procedure)
-- `(make-hashtable hash-function equiv k)`
-- `(make-hashtable hash-function equiv k weakness)`
+- `(make-hashtable hash-function equiv capacity)`
+- `(make-hashtable hash-function equiv capacity weakness)`
 
 If `hash-function` is `#f` and `equiv` is the `eq?` procedure, the
 semantics of `make-eq-hashtable` apply to the rest of the arguments.
@@ -222,30 +223,30 @@ hash function being called for every lookup or update.  Furthermore
 any hashtable operation may call the hash function more than once.
 
 - `(alist->eq-hashtable alist)` (procedure)
-- `(alist->eq-hashtable k alist)`
-- `(alist->eq-hashtable k weakness alist)`
+- `(alist->eq-hashtable capacity alist)`
+- `(alist->eq-hashtable capacity weakness alist)`
 
 The semantics of this procedure can be described as:
 
-    (let ((ht (make-eq-hashtable k weakness)))
+    (let ((ht (make-eq-hashtable capacity weakness)))
       (for-each (lambda (entry)
                   (hashtable-set! ht (car entry) (cdr entry)))
                 alist)
       ht)
 
-where omission of the `k` and/or `weakness` arguments corresponds to
-their omission in the call to `make-eq-hashtable`.
+where omission of the `capacity` and/or `weakness` arguments
+corresponds to their omission in the call to `make-eq-hashtable`.
 
 - `(alist->eqv-hashtable alist)` (procedure)
-- `(alist->eqv-hashtable k alist)`
-- `(alist->eqv-hashtable k weakness alist)`
+- `(alist->eqv-hashtable capacity alist)`
+- `(alist->eqv-hashtable capacity weakness alist)`
 
 This procedure is equivalent to `alist->eq-hashtable` except that
 `make-eqv-hashtable` is used to construct the hashtable.
 
 - `(alist->hashtable hash-function equiv alist)` (procedure)
-- `(alist->hashtable hash-function equiv k alist)`
-- `(alist->hashtable hash-function equiv k weakness alist)`
+- `(alist->hashtable hash-function equiv capacity alist)`
+- `(alist->hashtable hash-function equiv capacity weakness alist)`
 
 This procedure is equivalent to `alist->eq-hashtable` except that
 `make-hashtable` is used to construct the hashtable, with the given
@@ -379,20 +380,21 @@ determines the weakness of the copy, otherwise the weakness attribute
 of `hashtable` is used.
 
 - `(hashtable-clear! hashtable)` (procedure)
-- `(hashtable-clear! hashtable k)`
+- `(hashtable-clear! hashtable capacity)`
 
 Removes all associations from `hashtable` and returns an unspecified
-value.  If `k` is provided and not `#f`, the current capacity of the
-hashtable is reset to approximately `k` elements.
+value.  If `capacity` is provided and not `#f`, it must be an exact
+non-negative integer and the current capacity of the hashtable is
+reset to approximately `capacity` elements.
 
 - `(hashtable-clear-copy hashtable)`
-- `(hashtable-clear-copy hashtable k)`
+- `(hashtable-clear-copy hashtable capacity)`
 
 Returns a newly allocated mutable hashtable that has the same hash and
-equivalence functions and weakness attribute as `hashtable`.  The `k`
-argument may be `#t` to set the initial capacity of the copy to
-approximately `(hashtable-size hashtable)` elements; otherwise the
-semantics of `make-eq-hashtable` apply to the `k` argument.
+equivalence functions and weakness attribute as `hashtable`.  The
+`capacity` argument may be `#t` to set the initial capacity of the
+copy to approximately `(hashtable-size hashtable)` elements; otherwise
+the semantics of `make-eq-hashtable` apply to the `capacity` argument.
 
 - `(hashtable-keys hashtable)` (procedure)
 
@@ -549,9 +551,9 @@ definition of `alist->eq-hashtable`:
     (define alist->eq-hashtable
       (case-lambda
         ((alist) (alist->eq-hashtable #f #f alist))
-        ((k alist) (alist->eq-hashtable k #f alist))
-        ((k weakness alist)
-         (let ((ht (make-eq-hashtable k weakness)))
+        ((capacity alist) (alist->eq-hashtable capacity #f alist))
+        ((capacity weakness alist)
+         (let ((ht (make-eq-hashtable capacity weakness)))
            (for-each (lambda (entry)
                        (hashtable-set! ht (car entry) (cdr entry)))
                      alist)

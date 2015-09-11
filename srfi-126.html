@@ -59,22 +59,22 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <h3 id="constructors">Constructors</h3>
 <ul>
 <li><code>(make-eq-hashtable)</code> (procedure)</li>
-<li><code>(make-eq-hashtable k)</code></li>
-<li><code>(make-eq-hashtable k weakness)</code></li>
+<li><code>(make-eq-hashtable capacity)</code></li>
+<li><code>(make-eq-hashtable capacity weakness)</code></li>
 </ul>
-<p>Returns a newly allocated mutable hashtable that accepts arbitrary objects as keys, and compares those keys with <code>eq?</code>. If the <code>k</code> argument is provided and not <code>#f</code>, the initial capacity of the hashtable is set to approximately <code>k</code> elements. The <code>weakness</code> argument, if provided, must be one of: <code>#f</code>, <code>weak-key</code>, <code>weak-value</code>, <code>weak-key-and-value</code>, <code>ephemeral-key</code>, <code>ephemeral-value</code>, and <code>ephemeral-key-and-value</code>, and determines the weakness or ephemeral status for the keys and values in the hashtable. All values other than <code>#f</code> are optional to support; the implementation should signal the user in an implementation-defined manner when an unsupported value is used.</p>
+<p>Returns a newly allocated mutable hashtable that accepts arbitrary objects as keys, and compares those keys with <code>eq?</code>. If the <code>capacity</code> argument is provided and not <code>#f</code>, it must be an exact non-negative integer and the initial capacity of the hashtable is set to approximately <code>capacity</code> elements. The <code>weakness</code> argument, if provided, must be one of: <code>#f</code>, <code>weak-key</code>, <code>weak-value</code>, <code>weak-key-and-value</code>, <code>ephemeral-key</code>, <code>ephemeral-value</code>, and <code>ephemeral-key-and-value</code>, and determines the weakness or ephemeral status for the keys and values in the hashtable. All values other than <code>#f</code> are optional to support; the implementation should signal the user in an implementation-defined manner when an unsupported value is used.</p>
 <ul>
 <li><code>(make-eqv-hashtable)</code> (procedure)</li>
-<li><code>(make-eqv-hashtable k)</code></li>
-<li><code>(make-eqv-hashtable k weakness)</code></li>
+<li><code>(make-eqv-hashtable capacity)</code></li>
+<li><code>(make-eqv-hashtable capacity weakness)</code></li>
 </ul>
 <p>Returns a newly allocated mutable hashtable that accepts arbitrary objects as keys, and compares those keys with <code>eqv?</code>. The semantics of the optional arguments are as in <code>make-eq-hashtable</code>.</p>
 <p>Booleans, characters, numbers, and symbols are never stored weakly or ephemerally in a hashtable returned by <code>make-eqv-hashtable</code>, regardless of its weakness attribute.</p>
 <p><em>Rationale:</em> The possible allocation and reclamation of instances of these types is an implementation detail. Within the semantics of Scheme, they are considered eternally alive, because a new instance that is <code>eqv?</code> to a previously alive instance may be reallocated at any point in a program.</p>
 <ul>
 <li><code>(make-hashtable hash-function equiv)</code> (procedure)</li>
-<li><code>(make-hashtable hash-function equiv k)</code></li>
-<li><code>(make-hashtable hash-function equiv k weakness)</code></li>
+<li><code>(make-hashtable hash-function equiv capacity)</code></li>
+<li><code>(make-hashtable hash-function equiv capacity weakness)</code></li>
 </ul>
 <p>If <code>hash-function</code> is <code>#f</code> and <code>equiv</code> is the <code>eq?</code> procedure, the semantics of <code>make-eq-hashtable</code> apply to the rest of the arguments. If <code>hash-function</code> is <code>#f</code> and <code>equiv</code> is the <code>eqv?</code> procedure, the semantics of <code>make-eqv-hashtable</code> apply to the rest of the arguments.</p>
 <p>Otherwise, <code>hash-function</code> and <code>equiv</code> must be procedures. <code>Hash-function</code> should accept a key as an argument and should return a non-negative exact integer object. <code>Equiv</code> should accept two keys as arguments and return a single value. Neither procedure should mutate the hashtable returned by <code>make-hashtable</code>. The <code>make-hashtable</code> procedure returns a newly allocated mutable hashtable using <code>hash-function</code> as the hash function and <code>equiv</code> as the equivalence function used to compare keys. The semantics of the remaining arguments are as in <code>make-eq-hashtable</code> and <code>make-eqv-hashtable</code>.</p>
@@ -82,26 +82,26 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p><em>Note:</em> Hashtables are allowed to cache the results of calling the hash function and equivalence function, so programs cannot rely on the hash function being called for every lookup or update. Furthermore any hashtable operation may call the hash function more than once.</p>
 <ul>
 <li><code>(alist-&gt;eq-hashtable alist)</code> (procedure)</li>
-<li><code>(alist-&gt;eq-hashtable k alist)</code></li>
-<li><code>(alist-&gt;eq-hashtable k weakness alist)</code></li>
+<li><code>(alist-&gt;eq-hashtable capacity alist)</code></li>
+<li><code>(alist-&gt;eq-hashtable capacity weakness alist)</code></li>
 </ul>
 <p>The semantics of this procedure can be described as:</p>
-<pre><code>(let ((ht (make-eq-hashtable k weakness)))
+<pre><code>(let ((ht (make-eq-hashtable capacity weakness)))
   (for-each (lambda (entry)
               (hashtable-set! ht (car entry) (cdr entry)))
             alist)
   ht)</code></pre>
-<p>where omission of the <code>k</code> and/or <code>weakness</code> arguments corresponds to their omission in the call to <code>make-eq-hashtable</code>.</p>
+<p>where omission of the <code>capacity</code> and/or <code>weakness</code> arguments corresponds to their omission in the call to <code>make-eq-hashtable</code>.</p>
 <ul>
 <li><code>(alist-&gt;eqv-hashtable alist)</code> (procedure)</li>
-<li><code>(alist-&gt;eqv-hashtable k alist)</code></li>
-<li><code>(alist-&gt;eqv-hashtable k weakness alist)</code></li>
+<li><code>(alist-&gt;eqv-hashtable capacity alist)</code></li>
+<li><code>(alist-&gt;eqv-hashtable capacity weakness alist)</code></li>
 </ul>
 <p>This procedure is equivalent to <code>alist-&gt;eq-hashtable</code> except that <code>make-eqv-hashtable</code> is used to construct the hashtable.</p>
 <ul>
 <li><code>(alist-&gt;hashtable hash-function equiv alist)</code> (procedure)</li>
-<li><code>(alist-&gt;hashtable hash-function equiv k alist)</code></li>
-<li><code>(alist-&gt;hashtable hash-function equiv k weakness alist)</code></li>
+<li><code>(alist-&gt;hashtable hash-function equiv capacity alist)</code></li>
+<li><code>(alist-&gt;hashtable hash-function equiv capacity weakness alist)</code></li>
 </ul>
 <p>This procedure is equivalent to <code>alist-&gt;eq-hashtable</code> except that <code>make-hashtable</code> is used to construct the hashtable, with the given <code>hash-function</code> and <code>equiv</code> arguments.</p>
 <ul>
@@ -172,14 +172,14 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>Returns a copy of <code>hashtable</code>. If the <code>mutable</code> argument is provided and is true, the returned hashtable is mutable; otherwise it is immutable. If the optional <code>weakness</code> argument is provided, it determines the weakness of the copy, otherwise the weakness attribute of <code>hashtable</code> is used.</p>
 <ul>
 <li><code>(hashtable-clear! hashtable)</code> (procedure)</li>
-<li><code>(hashtable-clear! hashtable k)</code></li>
+<li><code>(hashtable-clear! hashtable capacity)</code></li>
 </ul>
-<p>Removes all associations from <code>hashtable</code> and returns an unspecified value. If <code>k</code> is provided and not <code>#f</code>, the current capacity of the hashtable is reset to approximately <code>k</code> elements.</p>
+<p>Removes all associations from <code>hashtable</code> and returns an unspecified value. If <code>capacity</code> is provided and not <code>#f</code>, it must be an exact non-negative integer and the current capacity of the hashtable is reset to approximately <code>capacity</code> elements.</p>
 <ul>
 <li><code>(hashtable-clear-copy hashtable)</code></li>
-<li><code>(hashtable-clear-copy hashtable k)</code></li>
+<li><code>(hashtable-clear-copy hashtable capacity)</code></li>
 </ul>
-<p>Returns a newly allocated mutable hashtable that has the same hash and equivalence functions and weakness attribute as <code>hashtable</code>. The <code>k</code> argument may be <code>#t</code> to set the initial capacity of the copy to approximately <code>(hashtable-size hashtable)</code> elements; otherwise the semantics of <code>make-eq-hashtable</code> apply to the <code>k</code> argument.</p>
+<p>Returns a newly allocated mutable hashtable that has the same hash and equivalence functions and weakness attribute as <code>hashtable</code>. The <code>capacity</code> argument may be <code>#t</code> to set the initial capacity of the copy to approximately <code>(hashtable-size hashtable)</code> elements; otherwise the semantics of <code>make-eq-hashtable</code> apply to the <code>capacity</code> argument.</p>
 <ul>
 <li><code>(hashtable-keys hashtable)</code> (procedure)</li>
 </ul>
@@ -264,9 +264,9 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <pre><code>(define alist-&gt;eq-hashtable
   (case-lambda
     ((alist) (alist-&gt;eq-hashtable #f #f alist))
-    ((k alist) (alist-&gt;eq-hashtable k #f alist))
-    ((k weakness alist)
-     (let ((ht (make-eq-hashtable k weakness)))
+    ((capacity alist) (alist-&gt;eq-hashtable capacity #f alist))
+    ((capacity weakness alist)
+     (let ((ht (make-eq-hashtable capacity weakness)))
        (for-each (lambda (entry)
                    (hashtable-set! ht (car entry) (cdr entry)))
                  alist)
