@@ -84,7 +84,8 @@ may be summarized as follows:
   `hashtable-entry-lists`.
 - The procedures `hashtable-for-each`, `hashtable-map!`,
   `hashtable-prune!`, `hashtable-merge!`, `hashtable-fold`,
-  `hashtable-map->list`, and `hashtable-find`.
+  `hashtable-map->list`, `hashtable-find`, `hashtable-empty?`, and
+  `hashtable-pop!`.
 
 Additionally, this specification adheres to the R7RS rule of
 specifying a single return value for procedures which don't have
@@ -517,6 +518,23 @@ exhausted.  Three values are returned: the key and value of the
 matching association or two unspecified values if none matched, and a
 Boolean indicating whether any association matched.
 
+- `(hashtable-empty? hashtable)`
+
+Effectively equivalent to:
+
+    (zero? (hashtable-size hashtable))
+
+- `(hashtable-pop! hashtable)` (procedure)
+
+Effectively equivalent to:
+
+    (let-values (((key value found?)
+                  (hashtable-find hashtable (lambda (k v) #t))))
+      (when (not found?)
+        (error))
+      (hashtable-delete! hashtable key)
+      (values key value))
+
 
 ### Inspection
 
@@ -710,6 +728,9 @@ efficient `hashtable-find`:
             (when (proc key value)
               (return key value #t))))
         (return #f #f #f)))
+
+The `hashtable-empty?` and `hashtable-pop!` procedures can be
+implemented as seen in their specifications.
 
 Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the

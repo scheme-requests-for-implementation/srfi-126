@@ -47,7 +47,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li>The procedure <code>hashtable-clear-copy</code>.</li>
 <li>Addition of the missing <code>hashtable-values</code> procedure.</li>
 <li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-entry-lists</code>.</li>
-<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, and <code>hashtable-find</code>.</li>
+<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, <code>hashtable-find</code>, <code>hashtable-empty?</code>, and <code>hashtable-pop!</code>.</li>
 </ul>
 <p>Additionally, this specification adheres to the R7RS rule of specifying a single return value for procedures which don't have meaningful return values.</p>
 <h2 id="specification">Specification</h2>
@@ -242,6 +242,21 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(hashtable-find hashtable proc)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-find</code> procedure applies <code>proc</code> to associations in <code>hashtable</code> in an unspecified order until one of the applications returns a true value or the associations are exhausted. Three values are returned: the key and value of the matching association or two unspecified values if none matched, and a Boolean indicating whether any association matched.</p>
+<ul>
+<li><code>(hashtable-empty? hashtable)</code></li>
+</ul>
+<p>Effectively equivalent to:</p>
+<pre><code>(zero? (hashtable-size hashtable))</code></pre>
+<ul>
+<li><code>(hashtable-pop! hashtable)</code> (procedure)</li>
+</ul>
+<p>Effectively equivalent to:</p>
+<pre><code>(let-values (((key value found?)
+              (hashtable-find hashtable (lambda (k v) #t))))
+  (when (not found?)
+    (error))
+  (hashtable-delete! hashtable key)
+  (values key value))</code></pre>
 <h3 id="inspection">Inspection</h3>
 <ul>
 <li><code>(hashtable-equivalence-function hashtable)</code> (procedure)</li>
@@ -373,6 +388,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
         (when (proc key value)
           (return key value #t))))
     (return #f #f #f)))</code></pre>
+<p>The <code>hashtable-empty?</code> and <code>hashtable-pop!</code> procedures can be implemented as seen in their specifications.</p>
 <p>Weak and ephemeral hashtables cannot be implemented by portable library code. They need to be implemented either directly at the platform level, or by using functionality which in turn needs to be implemented at the platform level, such as weak and ephemeral pairs. See MIT/GNU Scheme for an example.</p>
 <p>External representation cannot be implemented by portable library code.</p>
 <h2 id="acknowledgments">Acknowledgments</h2>
