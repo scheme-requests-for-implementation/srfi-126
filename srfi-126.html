@@ -47,7 +47,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li>The procedure <code>hashtable-clear-copy</code>.</li>
 <li>Addition of the missing <code>hashtable-values</code> procedure.</li>
 <li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, and <code>hashtable-find</code>.</li>
-<li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-&gt;alist</code>.</li>
+<li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-entry-lists</code>.</li>
 </ul>
 <p>Additionally, this specification adheres to the R7RS rule of specifying a single return value for procedures which don't have meaningful return values.</p>
 <h2 id="specification">Specification</h2>
@@ -217,6 +217,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(hashtable-map-&gt;list hashtable proc)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map-&gt;list</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and accumulates the returned values into a list. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
+<p><em>Note:</em> This procedure can trivially imitate <code>hashtable-&gt;alist</code>: <code>(hashtable-map-&gt;list hashtable cons)</code>.</p>
 <ul>
 <li><code>(hashtable-find hashtable proc)</code> (procedure)</li>
 </ul>
@@ -230,10 +231,10 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p>Returns a list of all values in <code>hashtable</code>. The order of the list is unspecified, and is not guaranteed to match the order of keys in the result of <code>hashtable-key-list</code>.</p>
 <ul>
-<li><code>(hashtable-&gt;alist hashtable)</code> (procedure)</li>
+<li><code>(hashtable-entry-lists hashtable)</code> (procedure)</li>
 </ul>
-<p>Returns an alist mapping the keys in <code>hashtable</code> to their corresponding values.</p>
-<p><em>Rationale:</em> Returning the keys and values as lists or an alist allows for using typical list processing idioms such as filtering and partitioning on the results. Additionally, these operations may be implemented more efficiently than their straightforward imitations using their vector-returning counterparts and <code>vector-&gt;list</code>.</p>
+<p>Returns two values, a list of the keys in <code>hashtable</code>, and a list of the corresponding values.</p>
+<p><em>Rationale:</em> Returning the keys and values as lists allows for using typical list processing idioms such as filtering and partitioning on the results. Additionally, these operations may be implemented more efficiently than their straightforward imitations using their vector-returning counterparts and <code>vector-&gt;list</code>.</p>
 <h3 id="inspection">Inspection</h3>
 <ul>
 <li><code>(hashtable-equivalence-function hashtable)</code> (procedure)</li>
@@ -337,13 +338,19 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
   (hashtable-map-&gt;list ht (lambda (key value) key)))
 
 (define (hashtable-value-list ht)
-  (hashtable-map-&gt;list ht (lambda (key value) value)))
-
-(define (hashtable-&gt;alist ht)
-  (hashtable-map-&gt;list ht cons))</code></pre>
+  (hashtable-map-&gt;list ht (lambda (key value) value)))</code></pre>
+<p>The <code>hashtable-entry-lists</code> procedure is simple to implement in terms of <code>hashtable-for-each</code>.</p>
+<pre><code>(define (hashtable-entry-lists ht)
+  (let ((keys &#39;())
+        (vals &#39;()))
+    (hashtable-for-each ht
+      (lambda (key val)
+        (set! keys (cons key keys))
+        (set! vals (cons val vals))))
+    (values keys vals)))</code></pre>
 <p>The <code>hashtable-find</code> procedure is simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that it be implemented more efficiently at the platform level.</p>
 <pre><code>(define (hashtable-find ht proc)
-  (let* ((alist (hashtable-&gt;alist ht))
+  (let* ((alist (hashtable-map-&gt;list ht cons))
          (found (find (lambda (pair)
                         (proc (car pair) (cdr pair)))
                       alist)))

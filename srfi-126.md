@@ -84,7 +84,7 @@ may be summarized as follows:
   `hashtable-prune!`, `hashtable-fold`, `hashtable-map->list`, and
   `hashtable-find`.
 - The procedures `hashtable-key-list`, `hashtable-value-list`, and
-  `hashtable->alist`.
+  `hashtable-entry-lists`.
 
 Additionally, this specification adheres to the R7RS rule of
 specifying a single return value for procedures which don't have
@@ -474,6 +474,9 @@ the key and value as arguments, and accumulates the returned values
 into a list.  The order in which `proc` is applied to the associations
 is unspecified.
 
+*Note:* This procedure can trivially imitate `hashtable->alist`:
+`(hashtable-map->list hashtable cons)`.
+
 - `(hashtable-find hashtable proc)` (procedure)
 
 `Proc` should accept two arguments, should return a single value, and
@@ -495,16 +498,16 @@ Returns a list of all values in `hashtable`.  The order of the list is
 unspecified, and is not guaranteed to match the order of keys in the
 result of `hashtable-key-list`.
 
-- `(hashtable->alist hashtable)` (procedure)
+- `(hashtable-entry-lists hashtable)` (procedure)
 
-Returns an alist mapping the keys in `hashtable` to their
-corresponding values.
+Returns two values, a list of the keys in `hashtable`, and a list of
+the corresponding values.
 
-*Rationale:* Returning the keys and values as lists or an alist allows
-for using typical list processing idioms such as filtering and
-partitioning on the results.  Additionally, these operations may be
-implemented more efficiently than their straightforward imitations
-using their vector-returning counterparts and `vector->list`.
+*Rationale:* Returning the keys and values as lists allows for using
+typical list processing idioms such as filtering and partitioning on
+the results.  Additionally, these operations may be implemented more
+efficiently than their straightforward imitations using their
+vector-returning counterparts and `vector->list`.
 
 
 ### Inspection
@@ -660,15 +663,24 @@ desirable to implement it more efficiently.  Given an efficient
     (define (hashtable-value-list ht)
       (hashtable-map->list ht (lambda (key value) value)))
 
-    (define (hashtable->alist ht)
-      (hashtable-map->list ht cons))
+The `hashtable-entry-lists` procedure is simple to implement in terms
+of `hashtable-for-each`.
+
+    (define (hashtable-entry-lists ht)
+      (let ((keys '())
+            (vals '()))
+        (hashtable-for-each ht
+          (lambda (key val)
+            (set! keys (cons key keys))
+            (set! vals (cons val vals))))
+        (values keys vals)))
 
 The `hashtable-find` procedure is simple to implement in terms of
 `hashtable-entries`, but it is desirable that it be implemented more
 efficiently at the platform level.
 
     (define (hashtable-find ht proc)
-      (let* ((alist (hashtable->alist ht))
+      (let* ((alist (hashtable-map->list ht cons))
              (found (find (lambda (pair)
                             (proc (car pair) (cdr pair)))
                           alist)))
