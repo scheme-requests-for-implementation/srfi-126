@@ -46,8 +46,8 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li>The procedures <code>hashtable-lookup</code> and <code>hashtable-intern!</code>.</li>
 <li>The procedure <code>hashtable-clear-copy</code>.</li>
 <li>Addition of the missing <code>hashtable-values</code> procedure.</li>
-<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, and <code>hashtable-find</code>.</li>
 <li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-entry-lists</code>.</li>
+<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, and <code>hashtable-find</code>.</li>
 </ul>
 <p>Additionally, this specification adheres to the R7RS rule of specifying a single return value for procedures which don't have meaningful return values.</p>
 <h2 id="specification">Specification</h2>
@@ -197,6 +197,19 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>Returns two values, a vector of the keys in <code>hashtable</code>, and a vector of the corresponding values.</p>
 <p><em>Rationale:</em> Returning the keys and values as vectors allows for greater locality and less allocation than if they were returned as lists.</p>
 <ul>
+<li><code>(hashtable-key-list hashtable)</code> (procedure)</li>
+</ul>
+<p>Returns a list of all keys in <code>hashtable</code>. The order of the list is unspecified.</p>
+<ul>
+<li><code>(hashtable-value-list hashtable)</code> (procedure)</li>
+</ul>
+<p>Returns a list of all values in <code>hashtable</code>. The order of the list is unspecified, and is not guaranteed to match the order of keys in the result of <code>hashtable-key-list</code>.</p>
+<ul>
+<li><code>(hashtable-entry-lists hashtable)</code> (procedure)</li>
+</ul>
+<p>Returns two values, a list of the keys in <code>hashtable</code>, and a list of the corresponding values.</p>
+<p><em>Rationale:</em> Returning the keys and values as lists allows for using typical list processing idioms such as filtering and partitioning on the results. Additionally, these operations may be implemented more efficiently than their straightforward imitations using their vector-returning counterparts and <code>vector-&gt;list</code>.</p>
+<ul>
 <li><code>(hashtable-for-each hashtable proc)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept two arguments, and should not mutate <code>hashtable</code>. The <code>hashtable-for-each</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments. The order in which <code>proc</code> is applied to the associations is unspecified. Return values of <code>proc</code> are ignored. <code>Hashtable-for-each</code> returns an unspecified value.</p>
@@ -222,19 +235,6 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(hashtable-find hashtable proc)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-find</code> procedure applies <code>proc</code> to associations in <code>hashtable</code> in an unspecified order until one of the applications returns a true value or the associations are exhausted. Three values are returned: the key and value of the matching association or two unspecified values if none matched, and a Boolean indicating whether any association matched.</p>
-<ul>
-<li><code>(hashtable-key-list hashtable)</code> (procedure)</li>
-</ul>
-<p>Returns a list of all keys in <code>hashtable</code>. The order of the list is unspecified.</p>
-<ul>
-<li><code>(hashtable-value-list hashtable)</code> (procedure)</li>
-</ul>
-<p>Returns a list of all values in <code>hashtable</code>. The order of the list is unspecified, and is not guaranteed to match the order of keys in the result of <code>hashtable-key-list</code>.</p>
-<ul>
-<li><code>(hashtable-entry-lists hashtable)</code> (procedure)</li>
-</ul>
-<p>Returns two values, a list of the keys in <code>hashtable</code>, and a list of the corresponding values.</p>
-<p><em>Rationale:</em> Returning the keys and values as lists allows for using typical list processing idioms such as filtering and partitioning on the results. Additionally, these operations may be implemented more efficiently than their straightforward imitations using their vector-returning counterparts and <code>vector-&gt;list</code>.</p>
 <h3 id="inspection">Inspection</h3>
 <ul>
 <li><code>(hashtable-equivalence-function hashtable)</code> (procedure)</li>

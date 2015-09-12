@@ -80,11 +80,11 @@ may be summarized as follows:
 - The procedures `hashtable-lookup` and `hashtable-intern!`.
 - The procedure `hashtable-clear-copy`.
 - Addition of the missing `hashtable-values` procedure.
+- The procedures `hashtable-key-list`, `hashtable-value-list`, and
+  `hashtable-entry-lists`.
 - The procedures `hashtable-for-each`, `hashtable-map!`,
   `hashtable-prune!`, `hashtable-fold`, `hashtable-map->list`, and
   `hashtable-find`.
-- The procedures `hashtable-key-list`, `hashtable-value-list`, and
-  `hashtable-entry-lists`.
 
 Additionally, this specification adheres to the R7RS rule of
 specifying a single return value for procedures which don't have
@@ -420,6 +420,28 @@ of the corresponding values.
 greater locality and less allocation than if they were returned as
 lists.
 
+- `(hashtable-key-list hashtable)` (procedure)
+
+Returns a list of all keys in `hashtable`.  The order of the list is
+unspecified.
+
+- `(hashtable-value-list hashtable)` (procedure)
+
+Returns a list of all values in `hashtable`.  The order of the list is
+unspecified, and is not guaranteed to match the order of keys in the
+result of `hashtable-key-list`.
+
+- `(hashtable-entry-lists hashtable)` (procedure)
+
+Returns two values, a list of the keys in `hashtable`, and a list of
+the corresponding values.
+
+*Rationale:* Returning the keys and values as lists allows for using
+typical list processing idioms such as filtering and partitioning on
+the results.  Additionally, these operations may be implemented more
+efficiently than their straightforward imitations using their
+vector-returning counterparts and `vector->list`.
+
 - `(hashtable-for-each hashtable proc)` (procedure)
 
 `Proc` should accept two arguments, and should not mutate `hashtable`.
@@ -486,28 +508,6 @@ one of the applications returns a true value or the associations are
 exhausted.  Three values are returned: the key and value of the
 matching association or two unspecified values if none matched, and a
 Boolean indicating whether any association matched.
-
-- `(hashtable-key-list hashtable)` (procedure)
-
-Returns a list of all keys in `hashtable`.  The order of the list is
-unspecified.
-
-- `(hashtable-value-list hashtable)` (procedure)
-
-Returns a list of all values in `hashtable`.  The order of the list is
-unspecified, and is not guaranteed to match the order of keys in the
-result of `hashtable-key-list`.
-
-- `(hashtable-entry-lists hashtable)` (procedure)
-
-Returns two values, a list of the keys in `hashtable`, and a list of
-the corresponding values.
-
-*Rationale:* Returning the keys and values as lists allows for using
-typical list processing idioms such as filtering and partitioning on
-the results.  Additionally, these operations may be implemented more
-efficiently than their straightforward imitations using their
-vector-returning counterparts and `vector->list`.
 
 
 ### Inspection
