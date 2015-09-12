@@ -38,16 +38,14 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>There is &quot;full&quot; backwards compatibility in the sense that all R6RS hashtable operations within a piece of code that execute without raising exceptions will continue to execute without raising exceptions when the hashtable library in use is changed to an implementation of this specification. On the other hand, R6RS's stark requirement of raising an exception when a procedure's use does not exactly correspond to the description in R6RS (which effectively prohibits extensions to its procedures' semantics) is ignored.</p>
 <p>The R6RS hashtables API is favored over SRFI-69 because the latter contains serious flaws. In particular, exposing the hash functions for the <code>eq?</code> and <code>eqv?</code> procedures is a hindrance for Scheme implementations with a moving garbage collector. SRFI-125 works around this by allowing the user-provided hash function passed to <code>make-hash-table</code> to be ignored by the implementation, and allowing the <code>hash-table-hash-function</code> procedure to return <code>#f</code> instead of the hash function passed to <code>make-hash-table</code>. R6RS avoids the issue by providing dedicated constructors for <code>eq?</code> and <code>eqv?</code> based hashtables, and returning <code>#f</code> when their hash function is queried.</p>
 <p>This specification also does not depend on SRFI-114 (Comparators), does not specify a spurious amount of utility procedures, does not describe a bimap API, and does not attempt to specify thread-safety because typical multi-threaded use-cases will most likely involve locking more than just accesses and mutations of hashtables.</p>
-<p>The additions made by this specification to the R6RS hashtables API may be summarized as follows:</p>
+<p>The utility procedures provided by this SRFI in addition to the R6RS API may be categorized as follows:</p>
 <ul>
-<li>Support for weak and ephemeral hashtables.</li>
-<li>External representation for hashtables.</li>
-<li>A triplet of <code>alist-&gt;hashtable</code> constructors.</li>
-<li>The procedures <code>hashtable-lookup</code> and <code>hashtable-intern!</code>.</li>
-<li>The procedure <code>hashtable-clear-copy</code>.</li>
-<li>Addition of the missing <code>hashtable-values</code> procedure.</li>
-<li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-entry-lists</code>.</li>
-<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, <code>hashtable-find</code>, <code>hashtable-empty?</code>, and <code>hashtable-pop!</code>.</li>
+<li><p>Constructors: <code>alist-&gt;eq-hashtable</code>, <code>alist-&gt;eqv-hashtable</code>, <code>alist-&gt;hashtable</code></p></li>
+<li><p>Access and mutation: <code>hashtable-lookup</code>, <code>hashtable-intern!</code></p></li>
+<li><p>Copying: <code>hashtable-clear-copy</code></p></li>
+<li><p>Key/value collections: <code>hashtable-values</code>, <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, <code>hashtable-entry-lists</code></p></li>
+<li><p>Iteration: <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, <code>hashtable-find</code></p></li>
+<li><p>Miscellaneous: <code>hashtable-empty?</code>, <code>hashtable-pop!</code></p></li>
 </ul>
 <p>Additionally, this specification adheres to the R7RS rule of specifying a single return value for procedures which don't have meaningful return values.</p>
 <h2 id="specification">Specification</h2>

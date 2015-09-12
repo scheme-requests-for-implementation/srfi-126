@@ -71,21 +71,24 @@ describe a bimap API, and does not attempt to specify thread-safety
 because typical multi-threaded use-cases will most likely involve
 locking more than just accesses and mutations of hashtables.
 
-The additions made by this specification to the R6RS hashtables API
-may be summarized as follows:
+The utility procedures provided by this SRFI in addition to the R6RS
+API may be categorized as follows:
 
-- Support for weak and ephemeral hashtables.
-- External representation for hashtables.
-- A triplet of `alist->hashtable` constructors.
-- The procedures `hashtable-lookup` and `hashtable-intern!`.
-- The procedure `hashtable-clear-copy`.
-- Addition of the missing `hashtable-values` procedure.
-- The procedures `hashtable-key-list`, `hashtable-value-list`, and
-  `hashtable-entry-lists`.
-- The procedures `hashtable-for-each`, `hashtable-map!`,
+- Constructors: `alist->eq-hashtable`, `alist->eqv-hashtable`,
+  `alist->hashtable`
+
+- Access and mutation: `hashtable-lookup`, `hashtable-intern!`
+
+- Copying: `hashtable-clear-copy`
+
+- Key/value collections: `hashtable-values`, `hashtable-key-list`,
+  `hashtable-value-list`, `hashtable-entry-lists`
+
+- Iteration: `hashtable-for-each`, `hashtable-map!`,
   `hashtable-prune!`, `hashtable-merge!`, `hashtable-fold`,
-  `hashtable-map->list`, `hashtable-find`, `hashtable-empty?`, and
-  `hashtable-pop!`.
+  `hashtable-map->list`, `hashtable-find`
+
+- Miscellaneous: `hashtable-empty?`, `hashtable-pop!`
 
 Additionally, this specification adheres to the R7RS rule of
 specifying a single return value for procedures which don't have
