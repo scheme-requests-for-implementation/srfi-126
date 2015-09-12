@@ -45,7 +45,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li>The procedures <code>hashtable-lookup</code> and <code>hashtable-intern!</code>.</li>
 <li>The procedure <code>hashtable-clear-copy</code>.</li>
 <li>Addition of the missing <code>hashtable-values</code> procedure.</li>
-<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, <code>hashtable-find</code>, and <code>hashtable-search</code>.</li>
+<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, and <code>hashtable-find</code>.</li>
 <li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-&gt;alist</code>.</li>
 </ul>
 <p>Additionally, this specification adheres to the R7RS rule of specifying a single return value for procedures which don't have meaningful return values.</p>
@@ -121,11 +121,11 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>An implementation supporting external representation for hashtables may optionally extend <code>quasiquote</code> for hashtable constants.</p>
 <p>When a hashtable constant appears within a quasiquote expression and is not already unquoted, the behavior of the quasiquote algorithm on the hashtable can be explained as follows:</p>
 <pre><code>(let ((copy (hashtable-clear-copy hashtable #t)))
-  (hashtable-for-each (lambda (key value)
-                        (let ((key (apply-quasiquote key))
-                              (value (apply-quasiquote value)))
-                          (hashtable-set! copy key value)))
-                      hashtable)
+  (hashtable-for-each hashtable
+    (lambda (key value)
+      (let ((key (apply-quasiquote key))
+            (value (apply-quasiquote value)))
+        (hashtable-set! copy key value))))
   ;; Make it immutable again.
   (hashtable-copy copy))</code></pre>
 <p>where the procedure <code>apply-quasiquote</code> recursively applies the quasiquote algorithm to the key and value.</p>
@@ -196,34 +196,30 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>Returns two values, a vector of the keys in <code>hashtable</code>, and a vector of the corresponding values.</p>
 <p><em>Rationale:</em> Returning the keys and values as vectors allows for greater locality and less allocation than if they were returned as lists.</p>
 <ul>
-<li><code>(hashtable-for-each proc hashtable)</code> (procedure)</li>
+<li><code>(hashtable-for-each hashtable proc)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept two arguments, and should not mutate <code>hashtable</code>. The <code>hashtable-for-each</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments. The order in which <code>proc</code> is applied to the associations is unspecified. Return values of <code>proc</code> are ignored. <code>Hashtable-for-each</code> returns an unspecified value.</p>
 <ul>
-<li><code>(hashtable-map! proc hashtable)</code> (procedure)</li>
+<li><code>(hashtable-map! hashtable proc)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map!</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and changes the value of the association to the return value of <code>proc</code>. The order in which <code>proc</code> is applied to the associations is unspecified. <code>Hashtable-map!</code> returns an unspecified value.</p>
 <ul>
-<li><code>(hashtable-prune! proc hashtable)</code> (procedure)</li>
+<li><code>(hashtable-prune! hashtable proc)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-prune!</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and deletes the association if <code>proc</code> returns a true value. The order in which <code>proc</code> is applied to the associations is unspecified. <code>Hashtable-prune!</code> returns an unspecified value.</p>
 <p><em>Rationale:</em> This procedure is provided in place of a typical &quot;filter&quot; and &quot;remove&quot; pair because the name &quot;remove&quot; may easily be confused with &quot;delete,&quot; and because the semantics of a mutative filtering operation, which is to select elements to keep and remove the rest, counters the human intuition of selecting elements to remove.</p>
 <ul>
-<li><code>(hashtable-fold proc init hashtable)</code> (procedure)</li>
+<li><code>(hashtable-fold hashtable init proc)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept three arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-fold</code> procedure accumulates a result by applying <code>proc</code> once for every association in <code>hashtable</code>, passing it as arguments: the key, the value, and the result of the previous application or <code>init</code> at the first application. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
 <ul>
-<li><code>(hashtable-map-&gt;list proc hashtable)</code> (procedure)</li>
+<li><code>(hashtable-map-&gt;list hashtable proc)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map-&gt;list</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and accumulates the returned values into a list. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
 <ul>
-<li><code>(hashtable-find proc hashtable default)</code> (procedure)</li>
+<li><code>(hashtable-find hashtable proc)</code> (procedure)</li>
 </ul>
-<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-find</code> procedure applies <code>proc</code> to associations in <code>hashtable</code> in an unspecified order until one of the applications returns a true value, which is then returned. If none of the applications return a true value, <code>default</code> is returned.</p>
-<ul>
-<li><code>(hashtable-search proc hashtable)</code> (procedure)</li>
-</ul>
-<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-search</code> procedure applies <code>proc</code> to associations in <code>hashtable</code> in an unspecified order until one of the applications returns a true value. Two values are returned: the true value returned by <code>proc</code> or an unspecified value if no applications of <code>proc</code> returned a true value, and a Boolean indicating whether any application returned a true value.</p>
+<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-find</code> procedure applies <code>proc</code> to associations in <code>hashtable</code> in an unspecified order until one of the applications returns a true value or the associations are exhausted. Three values are returned: the key and value of the matching association or two unspecified values if none matched, and a Boolean indicating whether any association matched.</p>
 <ul>
 <li><code>(hashtable-key-list hashtable)</code> (procedure)</li>
 </ul>
@@ -314,50 +310,53 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
   (let-values (((keys values) (hashtable-entries ht)))
     values))
 
-(define (hashtable-for-each proc ht)
+(define (hashtable-for-each ht proc)
   (let-values (((keys values) (hashtable-entries ht)))
     (vector-for-each proc keys values)))
 
-(define (hashtable-map! proc ht)
+(define (hashtable-map! ht proc)
   (let-values (((keys values) (hashtable-entries ht)))
     (vector-for-each (lambda (key value)
                        (hashtable-set! ht key (proc key value)))
                      keys values)))
 
-(define (hashtable-prune! proc ht)
+(define (hashtable-prune! ht proc)
   (let-values (((keys values) (hashtable-entries ht)))
     (vector-for-each (lambda (key value)
                        (when (proc key value)
                          (hashtable-delete! key)))
                      keys values)))</code></pre>
 <p>The <code>hashtable-fold</code> procedure could be implemented in terms of <code>hashtable-entries</code>, <code>vector-&gt;list</code>, and <code>fold</code>, but it is definitely desirable to implement it more efficiently. Given an efficient <code>hashtable-fold</code>, the following definitions can be used:</p>
-<pre><code>(define (hashtable-map-&gt;list proc ht)
-  (hashtable-fold &#39;()
-                  (lambda (key value acc)
-                    (cons (proc key value) acc))
-                  ht))
+<pre><code>(define (hashtable-map-&gt;list ht proc)
+  (hashtable-fold ht &#39;()
+    (lambda (key value acc)
+      (cons (proc key value) acc))))
 
 (define (hashtable-key-list ht)
-  (hashtable-map-&gt;list (lambda (key value) key) ht))
+  (hashtable-map-&gt;list ht (lambda (key value) key)))
 
 (define (hashtable-value-list ht)
-  (hashtable-map-&gt;list (lambda (key value) value) ht))
+  (hashtable-map-&gt;list ht (lambda (key value) value)))
 
 (define (hashtable-&gt;alist ht)
-  (hashtable-map-&gt;list cons ht))</code></pre>
-<p>The <code>hashtable-search</code> procedure is simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that it be implemented more efficiently at the platform level.</p>
-<pre><code>(define (hashtable-search proc ht)
+  (hashtable-map-&gt;list ht cons))</code></pre>
+<p>The <code>hashtable-find</code> procedure is simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that it be implemented more efficiently at the platform level.</p>
+<pre><code>(define (hashtable-find ht proc)
   (let* ((alist (hashtable-&gt;alist ht))
-         (found-tail (find-tail (lambda (pair)
-                                  (proc (car pair) (cdr pair)))
-                                alist)))
-    (if found-tail
-        (values (car found-tail) #t)
-        (values #f #f))))</code></pre>
-<p><code>Hashtable-find</code> can be implemented trivially in terms of an efficient <code>hashtable-search</code>.</p>
-<pre><code>(define (hashtable-find proc ht default)
-  (let-values (((result found?) (hashtable-search ht proc)))
-    (if found? result default)))</code></pre>
+         (found (find (lambda (pair)
+                        (proc (car pair) (cdr pair)))
+                      alist)))
+    (if found
+        (values (car found) (cdr found) #t)
+        (values #f #f #f))))</code></pre>
+<p>If an implementation supports efficient escape continuations and an efficient <code>hashtable-for-each</code>, those can be used to implement an efficient <code>hashtable-find</code>:</p>
+<pre><code>(define (hashtable-find ht proc)
+  (let-escape-continuation return
+    (hashtable-for-each ht
+      (lambda (key value)
+        (when (proc key value)
+          (return key value #t))))
+    (return #f #f #f)))</code></pre>
 <p>Weak and ephemeral hashtables cannot be implemented by portable library code. They need to be implemented either directly at the platform level, or by using functionality which in turn needs to be implemented at the platform level, such as weak and ephemeral pairs. See MIT/GNU Scheme for an example.</p>
 <p>External representation cannot be implemented by portable library code.</p>
 <h2 id="acknowledgments">Acknowledgments</h2>
