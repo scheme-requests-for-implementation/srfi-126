@@ -45,7 +45,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li>The procedures <code>hashtable-lookup</code> and <code>hashtable-intern!</code>.</li>
 <li>The procedure <code>hashtable-clear-copy</code>.</li>
 <li>Addition of the missing <code>hashtable-values</code> procedure.</li>
-<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, <code>hashtable-find</code>, and <code>hashtable-search</code>.</li>
+<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, and <code>hashtable-find</code>.</li>
 <li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-&gt;alist</code>.</li>
 </ul>
 <p>Additionally, this specification adheres to the R7RS rule of specifying a single return value for procedures which don't have meaningful return values.</p>
@@ -217,13 +217,9 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map-&gt;list</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and accumulates the returned values into a list. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
 <ul>
-<li><code>(hashtable-find proc hashtable default)</code> (procedure)</li>
+<li><code>(hashtable-find proc hashtable)</code> (procedure)</li>
 </ul>
-<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-find</code> procedure applies <code>proc</code> to associations in <code>hashtable</code> in an unspecified order until one of the applications returns a true value, which is then returned. If none of the applications return a true value, <code>default</code> is returned.</p>
-<ul>
-<li><code>(hashtable-search proc hashtable)</code> (procedure)</li>
-</ul>
-<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-search</code> procedure applies <code>proc</code> to associations in <code>hashtable</code> in an unspecified order until one of the applications returns a true value. Two values are returned: the true value returned by <code>proc</code> or an unspecified value if no applications of <code>proc</code> returned a true value, and a Boolean indicating whether any application returned a true value.</p>
+<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-find</code> procedure applies <code>proc</code> to associations in <code>hashtable</code> in an unspecified order until one of the applications returns a true value or the associations are exhausted. Three values are returned: the key and value of the matching association or two unspecified values if none matched, and a Boolean indicating whether any association matched.</p>
 <ul>
 <li><code>(hashtable-key-list hashtable)</code> (procedure)</li>
 </ul>
@@ -345,19 +341,23 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 
 (define (hashtable-&gt;alist ht)
   (hashtable-map-&gt;list cons ht))</code></pre>
-<p>The <code>hashtable-search</code> procedure is simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that it be implemented more efficiently at the platform level.</p>
-<pre><code>(define (hashtable-search proc ht)
+<p>The <code>hashtable-find</code> procedure is simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that it be implemented more efficiently at the platform level.</p>
+<pre><code>(define (hashtable-find proc ht)
   (let* ((alist (hashtable-&gt;alist ht))
-         (found-tail (find-tail (lambda (pair)
-                                  (proc (car pair) (cdr pair)))
-                                alist)))
-    (if found-tail
-        (values (car found-tail) #t)
-        (values #f #f))))</code></pre>
-<p><code>Hashtable-find</code> can be implemented trivially in terms of an efficient <code>hashtable-search</code>.</p>
-<pre><code>(define (hashtable-find proc ht default)
-  (let-values (((result found?) (hashtable-search ht proc)))
-    (if found? result default)))</code></pre>
+         (found (find (lambda (pair)
+                        (proc (car pair) (cdr pair)))
+                      alist)))
+    (if found
+        (values (car found) (cdr found) #t)
+        (values #f #f #f))))</code></pre>
+<p>If an implementation supports efficient escape continuations and an efficient <code>hashtable-for-each</code>, those can be used to implement an efficient <code>hashtable-find</code>:</p>
+<pre><code>(define (hashtable-find proc ht)
+  (let-escape-continuation return
+    (hashtable-for-each (lambda (key value)
+                          (when (proc key value)
+                            (return key value #t)))
+                        ht)
+    (return #f #f #f)))</code></pre>
 <p>Weak and ephemeral hashtables cannot be implemented by portable library code. They need to be implemented either directly at the platform level, or by using functionality which in turn needs to be implemented at the platform level, such as weak and ephemeral pairs. See MIT/GNU Scheme for an example.</p>
 <p>External representation cannot be implemented by portable library code.</p>
 <h2 id="acknowledgments">Acknowledgments</h2>

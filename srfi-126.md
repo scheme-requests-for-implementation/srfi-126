@@ -80,8 +80,8 @@ may be summarized as follows:
 - The procedure `hashtable-clear-copy`.
 - Addition of the missing `hashtable-values` procedure.
 - The procedures `hashtable-for-each`, `hashtable-map!`,
-  `hashtable-prune!`, `hashtable-fold`, `hashtable-map->list`,
-  `hashtable-find`, and `hashtable-search`.
+  `hashtable-prune!`, `hashtable-fold`, `hashtable-map->list`, and
+  `hashtable-find`.
 - The procedures `hashtable-key-list`, `hashtable-value-list`, and
   `hashtable->alist`.
 
@@ -473,24 +473,15 @@ the key and value as arguments, and accumulates the returned values
 into a list.  The order in which `proc` is applied to the associations
 is unspecified.
 
-- `(hashtable-find proc hashtable default)` (procedure)
+- `(hashtable-find proc hashtable)` (procedure)
 
 `Proc` should accept two arguments, should return a single value, and
 should not mutate `hashtable`.  The `hashtable-find` procedure applies
 `proc` to associations in `hashtable` in an unspecified order until
-one of the applications returns a true value, which is then returned.
-If none of the applications return a true value, `default` is
-returned.
-
-- `(hashtable-search proc hashtable)` (procedure)
-
-`Proc` should accept two arguments, should return a single value, and
-should not mutate `hashtable`.  The `hashtable-search` procedure
-applies `proc` to associations in `hashtable` in an unspecified order
-until one of the applications returns a true value.  Two values are
-returned: the true value returned by `proc` or an unspecified value if
-no applications of `proc` returned a true value, and a Boolean
-indicating whether any application returned a true value.
+one of the applications returns a true value or the associations are
+exhausted.  Three values are returned: the key and value of the
+matching association or two unspecified values if none matched, and a
+Boolean indicating whether any association matched.
 
 - `(hashtable-key-list hashtable)` (procedure)
 
@@ -672,25 +663,30 @@ desirable to implement it more efficiently.  Given an efficient
     (define (hashtable->alist ht)
       (hashtable-map->list cons ht))
 
-The `hashtable-search` procedure is simple to implement in terms of
+The `hashtable-find` procedure is simple to implement in terms of
 `hashtable-entries`, but it is desirable that it be implemented more
 efficiently at the platform level.
 
-    (define (hashtable-search proc ht)
+    (define (hashtable-find proc ht)
       (let* ((alist (hashtable->alist ht))
-             (found-tail (find-tail (lambda (pair)
-                                      (proc (car pair) (cdr pair)))
-                                    alist)))
-        (if found-tail
-            (values (car found-tail) #t)
-            (values #f #f))))
+             (found (find (lambda (pair)
+                            (proc (car pair) (cdr pair)))
+                          alist)))
+        (if found
+            (values (car found) (cdr found) #t)
+            (values #f #f #f))))
 
-`Hashtable-find` can be implemented trivially in terms of an efficient
-`hashtable-search`.
+If an implementation supports efficient escape continuations and an
+efficient `hashtable-for-each`, those can be used to implement an
+efficient `hashtable-find`:
 
-    (define (hashtable-find proc ht default)
-      (let-values (((result found?) (hashtable-search ht proc)))
-        (if found? result default)))
+    (define (hashtable-find proc ht)
+      (let-escape-continuation return
+        (hashtable-for-each (lambda (key value)
+                              (when (proc key value)
+                                (return key value #t)))
+                            ht)
+        (return #f #f #f)))
 
 Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the
