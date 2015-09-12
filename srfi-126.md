@@ -83,8 +83,8 @@ may be summarized as follows:
 - The procedures `hashtable-key-list`, `hashtable-value-list`, and
   `hashtable-entry-lists`.
 - The procedures `hashtable-for-each`, `hashtable-map!`,
-  `hashtable-prune!`, `hashtable-fold`, `hashtable-map->list`, and
-  `hashtable-find`.
+  `hashtable-prune!`, `hashtable-merge!`, `hashtable-fold`,
+  `hashtable-map->list`, and `hashtable-find`.
 
 Additionally, this specification adheres to the R7RS rule of
 specifying a single return value for procedures which don't have
@@ -477,6 +477,14 @@ with "delete," and because the semantics of a mutative filtering
 operation, which is to select elements to keep and remove the rest,
 counters the human intuition of selecting elements to remove.
 
+- `(hashtable-merge! hashtable-dest hashtable-source)` (procedure)
+
+Effectively equivalent to:
+
+    (hashtable-for-each hashtable-source
+      (lambda (key value)
+        (hashtable-set! hashtable-dest key value)))
+
 - `(hashtable-fold hashtable init proc)` (procedure)
 
 `Proc` should accept three arguments, should return a single value,
@@ -646,6 +654,9 @@ efficiently at the platform level.
                            (when (proc key value)
                              (hashtable-delete! key)))
                          keys values)))
+
+The `hashtable-merge!` procedure can be implemented as seen in its
+specification.
 
 The `hashtable-fold` procedure could be implemented in terms of
 `hashtable-entries`, `vector->list`, and `fold`, but it is definitely

@@ -47,7 +47,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li>The procedure <code>hashtable-clear-copy</code>.</li>
 <li>Addition of the missing <code>hashtable-values</code> procedure.</li>
 <li>The procedures <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, and <code>hashtable-entry-lists</code>.</li>
-<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, and <code>hashtable-find</code>.</li>
+<li>The procedures <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, and <code>hashtable-find</code>.</li>
 </ul>
 <p>Additionally, this specification adheres to the R7RS rule of specifying a single return value for procedures which don't have meaningful return values.</p>
 <h2 id="specification">Specification</h2>
@@ -223,6 +223,13 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-prune!</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and deletes the association if <code>proc</code> returns a true value. The order in which <code>proc</code> is applied to the associations is unspecified. <code>Hashtable-prune!</code> returns an unspecified value.</p>
 <p><em>Rationale:</em> This procedure is provided in place of a typical &quot;filter&quot; and &quot;remove&quot; pair because the name &quot;remove&quot; may easily be confused with &quot;delete,&quot; and because the semantics of a mutative filtering operation, which is to select elements to keep and remove the rest, counters the human intuition of selecting elements to remove.</p>
 <ul>
+<li><code>(hashtable-merge! hashtable-dest hashtable-source)</code> (procedure)</li>
+</ul>
+<p>Effectively equivalent to:</p>
+<pre><code>(hashtable-for-each hashtable-source
+  (lambda (key value)
+    (hashtable-set! hashtable-dest key value)))</code></pre>
+<ul>
 <li><code>(hashtable-fold hashtable init proc)</code> (procedure)</li>
 </ul>
 <p><code>Proc</code> should accept three arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-fold</code> procedure accumulates a result by applying <code>proc</code> once for every association in <code>hashtable</code>, passing it as arguments: the key, the value, and the result of the previous application or <code>init</code> at the first application. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
@@ -328,6 +335,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
                        (when (proc key value)
                          (hashtable-delete! key)))
                      keys values)))</code></pre>
+<p>The <code>hashtable-merge!</code> procedure can be implemented as seen in its specification.</p>
 <p>The <code>hashtable-fold</code> procedure could be implemented in terms of <code>hashtable-entries</code>, <code>vector-&gt;list</code>, and <code>fold</code>, but it is definitely desirable to implement it more efficiently. Given an efficient <code>hashtable-fold</code>, the following definitions can be used:</p>
 <pre><code>(define (hashtable-map-&gt;list ht proc)
   (hashtable-fold ht &#39;()
