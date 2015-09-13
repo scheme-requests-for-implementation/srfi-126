@@ -71,20 +71,24 @@ describe a bimap API, and does not attempt to specify thread-safety
 because typical multi-threaded use-cases will most likely involve
 locking more than just accesses and mutations of hashtables.
 
-The additions made by this specification to the R6RS hashtables API
-may be summarized as follows:
+The utility procedures provided by this SRFI in addition to the R6RS
+API may be categorized as follows:
 
-- Support for weak and ephemeral hashtables.
-- External representation for hashtables.
-- A triplet of `alist->hashtable` constructors.
-- The procedures `hashtable-lookup` and `hashtable-intern!`.
-- The procedure `hashtable-clear-copy`.
-- Addition of the missing `hashtable-values` procedure.
-- The procedures `hashtable-for-each`, `hashtable-map!`,
-  `hashtable-prune!`, `hashtable-fold`, `hashtable-map->list`, and
-  `hashtable-find`.
-- The procedures `hashtable-key-list`, `hashtable-value-list`, and
-  `hashtable->alist`.
+- Constructors: `alist->eq-hashtable`, `alist->eqv-hashtable`,
+  `alist->hashtable`
+
+- Access and mutation: `hashtable-lookup`, `hashtable-intern!`
+
+- Copying: `hashtable-clear-copy`
+
+- Key/value collections: `hashtable-values`, `hashtable-key-list`,
+  `hashtable-value-list`, `hashtable-entry-lists`
+
+- Iteration: `hashtable-walk`, `hashtable-update-all!`,
+  `hashtable-prune!`, `hashtable-merge!`, `hashtable-sum`,
+  `hashtable-map->lset`, `hashtable-find`
+
+- Miscellaneous: `hashtable-empty?`, `hashtable-pop!`
 
 Additionally, this specification adheres to the R7RS rule of
 specifying a single return value for procedures which don't have
@@ -305,7 +309,7 @@ is not already unquoted, the behavior of the quasiquote algorithm on
 the hashtable can be explained as follows:
 
     (let ((copy (hashtable-clear-copy hashtable #t)))
-      (hashtable-for-each hashtable
+      (hashtable-walk hashtable
         (lambda (key value)
           (let ((key (apply-quasiquote key))
                 (value (apply-quasiquote value)))
@@ -420,24 +424,46 @@ of the corresponding values.
 greater locality and less allocation than if they were returned as
 lists.
 
-- `(hashtable-for-each hashtable proc)` (procedure)
+- `(hashtable-key-list hashtable)` (procedure)
+
+Returns a list of all keys in `hashtable`.  The order of the list is
+unspecified.
+
+- `(hashtable-value-list hashtable)` (procedure)
+
+Returns a list of all values in `hashtable`.  The order of the list is
+unspecified, and is not guaranteed to match the order of keys in the
+result of `hashtable-key-list`.
+
+- `(hashtable-entry-lists hashtable)` (procedure)
+
+Returns two values, a list of the keys in `hashtable`, and a list of
+the corresponding values.
+
+*Rationale:* Returning the keys and values as lists allows for using
+typical list processing idioms such as filtering and partitioning on
+the results.  Additionally, these operations may be implemented more
+efficiently than their straightforward imitations using their
+vector-returning counterparts and `vector->list`.
+
+- `(hashtable-walk hashtable proc)` (procedure)
 
 `Proc` should accept two arguments, and should not mutate `hashtable`.
-The `hashtable-for-each` procedure applies `proc` once for every
+The `hashtable-walk` procedure applies `proc` once for every
 association in `hashtable`, passing it the key and value as arguments.
 The order in which `proc` is applied to the associations is
 unspecified.  Return values of `proc` are ignored.
-`Hashtable-for-each` returns an unspecified value.
+`Hashtable-walk` returns an unspecified value.
 
-- `(hashtable-map! hashtable proc)` (procedure)
+- `(hashtable-update-all! hashtable proc)` (procedure)
 
 `Proc` should accept two arguments, should return a single value, and
-should not mutate `hashtable`.  The `hashtable-map!` procedure applies
-`proc` once for every association in `hashtable`, passing it the key
-and value as arguments, and changes the value of the association to
-the return value of `proc`.  The order in which `proc` is applied to
-the associations is unspecified.  `Hashtable-map!` returns an
-unspecified value.
+should not mutate `hashtable`.  The `hashtable-update-all!` procedure
+applies `proc` once for every association in `hashtable`, passing it
+the key and value as arguments, and changes the value of the
+association to the return value of `proc`.  The order in which `proc`
+is applied to the associations is unspecified.
+`Hashtable-update-all!` returns an unspecified value.
 
 - `(hashtable-prune! hashtable proc)` (procedure)
 
@@ -455,24 +481,40 @@ with "delete," and because the semantics of a mutative filtering
 operation, which is to select elements to keep and remove the rest,
 counters the human intuition of selecting elements to remove.
 
-- `(hashtable-fold hashtable init proc)` (procedure)
+- `(hashtable-merge! hashtable-dest hashtable-source)` (procedure)
+
+Effectively equivalent to:
+
+    (hashtable-walk hashtable-source
+      (lambda (key value)
+        (hashtable-set! hashtable-dest key value)))
+
+- `(hashtable-sum hashtable init proc)` (procedure)
 
 `Proc` should accept three arguments, should return a single value,
-and should not mutate `hashtable`.  The `hashtable-fold` procedure
+and should not mutate `hashtable`.  The `hashtable-sum` procedure
 accumulates a result by applying `proc` once for every association in
 `hashtable`, passing it as arguments: the key, the value, and the
 result of the previous application or `init` at the first application.
 The order in which `proc` is applied to the associations is
 unspecified.
 
-- `(hashtable-map->list hashtable proc)` (procedure)
+- `(hashtable-map->lset hashtable proc)` (procedure)
 
 `Proc` should accept two arguments, should return a single value, and
-should not mutate `hashtable`.  The `hashtable-map->list` procedure
+should not mutate `hashtable`.  The `hashtable-map->lset` procedure
 applies `proc` once for every association in `hashtable`, passing it
 the key and value as arguments, and accumulates the returned values
-into a list.  The order in which `proc` is applied to the associations
-is unspecified.
+into a list.  The order in which `proc` is applied to the
+associations, and the order of the results in the returned list, are
+unspecified.
+
+*Note:* This procedure can trivially imitate `hashtable->alist`:
+`(hashtable-map->lset hashtable cons)`.
+
+*Warning:* Since the order of the results is unspecified, the returned
+list should be treated as a set or multiset.  Relying on the order of
+results will produce nondeterministic programs.
 
 - `(hashtable-find hashtable proc)` (procedure)
 
@@ -484,27 +526,22 @@ exhausted.  Three values are returned: the key and value of the
 matching association or two unspecified values if none matched, and a
 Boolean indicating whether any association matched.
 
-- `(hashtable-key-list hashtable)` (procedure)
+- `(hashtable-empty? hashtable)`
 
-Returns a list of all keys in `hashtable`.  The order of the list is
-unspecified.
+Effectively equivalent to:
 
-- `(hashtable-value-list hashtable)` (procedure)
+    (zero? (hashtable-size hashtable))
 
-Returns a list of all values in `hashtable`.  The order of the list is
-unspecified, and is not guaranteed to match the order of keys in the
-result of `hashtable-key-list`.
+- `(hashtable-pop! hashtable)` (procedure)
 
-- `(hashtable->alist hashtable)` (procedure)
+Effectively equivalent to:
 
-Returns an alist mapping the keys in `hashtable` to their
-corresponding values.
-
-*Rationale:* Returning the keys and values as lists or an alist allows
-for using typical list processing idioms such as filtering and
-partitioning on the results.  Additionally, these operations may be
-implemented more efficiently than their straightforward imitations
-using their vector-returning counterparts and `vector->list`.
+    (let-values (((key value found?)
+                  (hashtable-find hashtable (lambda (k v) #t))))
+      (when (not found?)
+        (error))
+      (hashtable-delete! hashtable key)
+      (values key value))
 
 
 ### Inspection
@@ -618,7 +655,7 @@ The `hashtable-clear-copy` procedure can be implemented as follows:
                              capacity)
                          (hashtable-weakness hashtable)))))
 
-The `hashtable-values`, `hashtable-for-each`, `hashtable-map!`, and
+The `hashtable-values`, `hashtable-walk`, `hashtable-update-all!`, and
 `hashtable-prune!` procedures are simple to implement in terms of
 `hashtable-entries`, but it is desirable that they be implemented more
 efficiently at the platform level.
@@ -627,11 +664,11 @@ efficiently at the platform level.
       (let-values (((keys values) (hashtable-entries ht)))
         values))
 
-    (define (hashtable-for-each ht proc)
+    (define (hashtable-walk ht proc)
       (let-values (((keys values) (hashtable-entries ht)))
         (vector-for-each proc keys values)))
 
-    (define (hashtable-map! ht proc)
+    (define (hashtable-update-all! ht proc)
       (let-values (((keys values) (hashtable-entries ht)))
         (vector-for-each (lambda (key value)
                            (hashtable-set! ht key (proc key value)))
@@ -644,31 +681,43 @@ efficiently at the platform level.
                              (hashtable-delete! key)))
                          keys values)))
 
-The `hashtable-fold` procedure could be implemented in terms of
+The `hashtable-merge!` procedure can be implemented as seen in its
+specification.
+
+The `hashtable-sum` procedure could be implemented in terms of
 `hashtable-entries`, `vector->list`, and `fold`, but it is definitely
 desirable to implement it more efficiently.  Given an efficient
-`hashtable-fold`, the following definitions can be used:
+`hashtable-sum`, the following definitions can be used:
 
-    (define (hashtable-map->list ht proc)
-      (hashtable-fold ht '()
+    (define (hashtable-map->lset ht proc)
+      (hashtable-sum ht '()
         (lambda (key value acc)
           (cons (proc key value) acc))))
 
     (define (hashtable-key-list ht)
-      (hashtable-map->list ht (lambda (key value) key)))
+      (hashtable-map->lset ht (lambda (key value) key)))
 
     (define (hashtable-value-list ht)
-      (hashtable-map->list ht (lambda (key value) value)))
+      (hashtable-map->lset ht (lambda (key value) value)))
 
-    (define (hashtable->alist ht)
-      (hashtable-map->list ht cons))
+The `hashtable-entry-lists` procedure is simple to implement in terms
+of `hashtable-walk`.
+
+    (define (hashtable-entry-lists ht)
+      (let ((keys '())
+            (vals '()))
+        (hashtable-walk ht
+          (lambda (key val)
+            (set! keys (cons key keys))
+            (set! vals (cons val vals))))
+        (values keys vals)))
 
 The `hashtable-find` procedure is simple to implement in terms of
 `hashtable-entries`, but it is desirable that it be implemented more
 efficiently at the platform level.
 
     (define (hashtable-find ht proc)
-      (let* ((alist (hashtable->alist ht))
+      (let* ((alist (hashtable-map->lset ht cons))
              (found (find (lambda (pair)
                             (proc (car pair) (cdr pair)))
                           alist)))
@@ -677,16 +726,19 @@ efficiently at the platform level.
             (values #f #f #f))))
 
 If an implementation supports efficient escape continuations and an
-efficient `hashtable-for-each`, those can be used to implement an
+efficient `hashtable-walk`, those can be used to implement an
 efficient `hashtable-find`:
 
     (define (hashtable-find ht proc)
       (let-escape-continuation return
-        (hashtable-for-each ht
+        (hashtable-walk ht
           (lambda (key value)
             (when (proc key value)
               (return key value #t))))
         (return #f #f #f)))
+
+The `hashtable-empty?` and `hashtable-pop!` procedures can be
+implemented as seen in their specifications.
 
 Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the
