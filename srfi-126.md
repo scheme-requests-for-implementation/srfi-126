@@ -84,9 +84,9 @@ API may be categorized as follows:
 - Key/value collections: `hashtable-values`, `hashtable-key-list`,
   `hashtable-value-list`, `hashtable-entry-lists`
 
-- Iteration: `hashtable-for-each`, `hashtable-map!`,
-  `hashtable-prune!`, `hashtable-merge!`, `hashtable-fold`,
-  `hashtable-map->list`, `hashtable-find`
+- Iteration: `hashtable-walk`, `hashtable-map!`, `hashtable-prune!`,
+  `hashtable-merge!`, `hashtable-fold`, `hashtable-map->list`,
+  `hashtable-find`
 
 - Miscellaneous: `hashtable-empty?`, `hashtable-pop!`
 
@@ -309,7 +309,7 @@ is not already unquoted, the behavior of the quasiquote algorithm on
 the hashtable can be explained as follows:
 
     (let ((copy (hashtable-clear-copy hashtable #t)))
-      (hashtable-for-each hashtable
+      (hashtable-walk hashtable
         (lambda (key value)
           (let ((key (apply-quasiquote key))
                 (value (apply-quasiquote value)))
@@ -446,14 +446,14 @@ the results.  Additionally, these operations may be implemented more
 efficiently than their straightforward imitations using their
 vector-returning counterparts and `vector->list`.
 
-- `(hashtable-for-each hashtable proc)` (procedure)
+- `(hashtable-walk hashtable proc)` (procedure)
 
 `Proc` should accept two arguments, and should not mutate `hashtable`.
-The `hashtable-for-each` procedure applies `proc` once for every
+The `hashtable-walk` procedure applies `proc` once for every
 association in `hashtable`, passing it the key and value as arguments.
 The order in which `proc` is applied to the associations is
 unspecified.  Return values of `proc` are ignored.
-`Hashtable-for-each` returns an unspecified value.
+`Hashtable-walk` returns an unspecified value.
 
 - `(hashtable-map! hashtable proc)` (procedure)
 
@@ -485,7 +485,7 @@ counters the human intuition of selecting elements to remove.
 
 Effectively equivalent to:
 
-    (hashtable-for-each hashtable-source
+    (hashtable-walk hashtable-source
       (lambda (key value)
         (hashtable-set! hashtable-dest key value)))
 
@@ -650,7 +650,7 @@ The `hashtable-clear-copy` procedure can be implemented as follows:
                              capacity)
                          (hashtable-weakness hashtable)))))
 
-The `hashtable-values`, `hashtable-for-each`, `hashtable-map!`, and
+The `hashtable-values`, `hashtable-walk`, `hashtable-map!`, and
 `hashtable-prune!` procedures are simple to implement in terms of
 `hashtable-entries`, but it is desirable that they be implemented more
 efficiently at the platform level.
@@ -659,7 +659,7 @@ efficiently at the platform level.
       (let-values (((keys values) (hashtable-entries ht)))
         values))
 
-    (define (hashtable-for-each ht proc)
+    (define (hashtable-walk ht proc)
       (let-values (((keys values) (hashtable-entries ht)))
         (vector-for-each proc keys values)))
 
@@ -696,12 +696,12 @@ desirable to implement it more efficiently.  Given an efficient
       (hashtable-map->list ht (lambda (key value) value)))
 
 The `hashtable-entry-lists` procedure is simple to implement in terms
-of `hashtable-for-each`.
+of `hashtable-walk`.
 
     (define (hashtable-entry-lists ht)
       (let ((keys '())
             (vals '()))
-        (hashtable-for-each ht
+        (hashtable-walk ht
           (lambda (key val)
             (set! keys (cons key keys))
             (set! vals (cons val vals))))
@@ -721,12 +721,12 @@ efficiently at the platform level.
             (values #f #f #f))))
 
 If an implementation supports efficient escape continuations and an
-efficient `hashtable-for-each`, those can be used to implement an
+efficient `hashtable-walk`, those can be used to implement an
 efficient `hashtable-find`:
 
     (define (hashtable-find ht proc)
       (let-escape-continuation return
-        (hashtable-for-each ht
+        (hashtable-walk ht
           (lambda (key value)
             (when (proc key value)
               (return key value #t))))

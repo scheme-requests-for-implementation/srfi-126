@@ -44,7 +44,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><p>Access and mutation: <code>hashtable-lookup</code>, <code>hashtable-intern!</code></p></li>
 <li><p>Copying: <code>hashtable-clear-copy</code></p></li>
 <li><p>Key/value collections: <code>hashtable-values</code>, <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, <code>hashtable-entry-lists</code></p></li>
-<li><p>Iteration: <code>hashtable-for-each</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, <code>hashtable-find</code></p></li>
+<li><p>Iteration: <code>hashtable-walk</code>, <code>hashtable-map!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, <code>hashtable-find</code></p></li>
 <li><p>Miscellaneous: <code>hashtable-empty?</code>, <code>hashtable-pop!</code></p></li>
 </ul>
 <p>Additionally, this specification adheres to the R7RS rule of specifying a single return value for procedures which don't have meaningful return values.</p>
@@ -120,7 +120,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>An implementation supporting external representation for hashtables may optionally extend <code>quasiquote</code> for hashtable constants.</p>
 <p>When a hashtable constant appears within a quasiquote expression and is not already unquoted, the behavior of the quasiquote algorithm on the hashtable can be explained as follows:</p>
 <pre><code>(let ((copy (hashtable-clear-copy hashtable #t)))
-  (hashtable-for-each hashtable
+  (hashtable-walk hashtable
     (lambda (key value)
       (let ((key (apply-quasiquote key))
             (value (apply-quasiquote value)))
@@ -208,9 +208,9 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>Returns two values, a list of the keys in <code>hashtable</code>, and a list of the corresponding values.</p>
 <p><em>Rationale:</em> Returning the keys and values as lists allows for using typical list processing idioms such as filtering and partitioning on the results. Additionally, these operations may be implemented more efficiently than their straightforward imitations using their vector-returning counterparts and <code>vector-&gt;list</code>.</p>
 <ul>
-<li><code>(hashtable-for-each hashtable proc)</code> (procedure)</li>
+<li><code>(hashtable-walk hashtable proc)</code> (procedure)</li>
 </ul>
-<p><code>Proc</code> should accept two arguments, and should not mutate <code>hashtable</code>. The <code>hashtable-for-each</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments. The order in which <code>proc</code> is applied to the associations is unspecified. Return values of <code>proc</code> are ignored. <code>Hashtable-for-each</code> returns an unspecified value.</p>
+<p><code>Proc</code> should accept two arguments, and should not mutate <code>hashtable</code>. The <code>hashtable-walk</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments. The order in which <code>proc</code> is applied to the associations is unspecified. Return values of <code>proc</code> are ignored. <code>Hashtable-walk</code> returns an unspecified value.</p>
 <ul>
 <li><code>(hashtable-map! hashtable proc)</code> (procedure)</li>
 </ul>
@@ -224,7 +224,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(hashtable-merge! hashtable-dest hashtable-source)</code> (procedure)</li>
 </ul>
 <p>Effectively equivalent to:</p>
-<pre><code>(hashtable-for-each hashtable-source
+<pre><code>(hashtable-walk hashtable-source
   (lambda (key value)
     (hashtable-set! hashtable-dest key value)))</code></pre>
 <ul>
@@ -327,12 +327,12 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
                          (hashtable-size hashtable)
                          capacity)
                      (hashtable-weakness hashtable)))))</code></pre>
-<p>The <code>hashtable-values</code>, <code>hashtable-for-each</code>, <code>hashtable-map!</code>, and <code>hashtable-prune!</code> procedures are simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that they be implemented more efficiently at the platform level.</p>
+<p>The <code>hashtable-values</code>, <code>hashtable-walk</code>, <code>hashtable-map!</code>, and <code>hashtable-prune!</code> procedures are simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that they be implemented more efficiently at the platform level.</p>
 <pre><code>(define (hashtable-values ht)
   (let-values (((keys values) (hashtable-entries ht)))
     values))
 
-(define (hashtable-for-each ht proc)
+(define (hashtable-walk ht proc)
   (let-values (((keys values) (hashtable-entries ht)))
     (vector-for-each proc keys values)))
 
@@ -360,11 +360,11 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 
 (define (hashtable-value-list ht)
   (hashtable-map-&gt;list ht (lambda (key value) value)))</code></pre>
-<p>The <code>hashtable-entry-lists</code> procedure is simple to implement in terms of <code>hashtable-for-each</code>.</p>
+<p>The <code>hashtable-entry-lists</code> procedure is simple to implement in terms of <code>hashtable-walk</code>.</p>
 <pre><code>(define (hashtable-entry-lists ht)
   (let ((keys &#39;())
         (vals &#39;()))
-    (hashtable-for-each ht
+    (hashtable-walk ht
       (lambda (key val)
         (set! keys (cons key keys))
         (set! vals (cons val vals))))
@@ -378,10 +378,10 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
     (if found
         (values (car found) (cdr found) #t)
         (values #f #f #f))))</code></pre>
-<p>If an implementation supports efficient escape continuations and an efficient <code>hashtable-for-each</code>, those can be used to implement an efficient <code>hashtable-find</code>:</p>
+<p>If an implementation supports efficient escape continuations and an efficient <code>hashtable-walk</code>, those can be used to implement an efficient <code>hashtable-find</code>:</p>
 <pre><code>(define (hashtable-find ht proc)
   (let-escape-continuation return
-    (hashtable-for-each ht
+    (hashtable-walk ht
       (lambda (key value)
         (when (proc key value)
           (return key value #t))))
