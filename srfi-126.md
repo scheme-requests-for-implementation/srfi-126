@@ -85,8 +85,8 @@ API may be categorized as follows:
   `hashtable-value-list`, `hashtable-entry-lists`
 
 - Iteration: `hashtable-walk`, `hashtable-update-all!`,
-  `hashtable-prune!`, `hashtable-merge!`, `hashtable-fold`,
-  `hashtable-map->list`, `hashtable-find`
+  `hashtable-prune!`, `hashtable-merge!`, `hashtable-sum`,
+  `hashtable-map->lset`, `hashtable-find`
 
 - Miscellaneous: `hashtable-empty?`, `hashtable-pop!`
 
@@ -489,27 +489,32 @@ Effectively equivalent to:
       (lambda (key value)
         (hashtable-set! hashtable-dest key value)))
 
-- `(hashtable-fold hashtable init proc)` (procedure)
+- `(hashtable-sum hashtable init proc)` (procedure)
 
 `Proc` should accept three arguments, should return a single value,
-and should not mutate `hashtable`.  The `hashtable-fold` procedure
+and should not mutate `hashtable`.  The `hashtable-sum` procedure
 accumulates a result by applying `proc` once for every association in
 `hashtable`, passing it as arguments: the key, the value, and the
 result of the previous application or `init` at the first application.
 The order in which `proc` is applied to the associations is
 unspecified.
 
-- `(hashtable-map->list hashtable proc)` (procedure)
+- `(hashtable-map->lset hashtable proc)` (procedure)
 
 `Proc` should accept two arguments, should return a single value, and
-should not mutate `hashtable`.  The `hashtable-map->list` procedure
+should not mutate `hashtable`.  The `hashtable-map->lset` procedure
 applies `proc` once for every association in `hashtable`, passing it
 the key and value as arguments, and accumulates the returned values
-into a list.  The order in which `proc` is applied to the associations
-is unspecified.
+into a list.  The order in which `proc` is applied to the
+associations, and the order of the results in the returned list, are
+unspecified.
 
 *Note:* This procedure can trivially imitate `hashtable->alist`:
-`(hashtable-map->list hashtable cons)`.
+`(hashtable-map->lset hashtable cons)`.
+
+*Warning:* Since the order of the results is unspecified, the returned
+list should be treated as a set or multiset.  Relying on the order of
+results will produce nondeterministic programs.
 
 - `(hashtable-find hashtable proc)` (procedure)
 
@@ -679,21 +684,21 @@ efficiently at the platform level.
 The `hashtable-merge!` procedure can be implemented as seen in its
 specification.
 
-The `hashtable-fold` procedure could be implemented in terms of
+The `hashtable-sum` procedure could be implemented in terms of
 `hashtable-entries`, `vector->list`, and `fold`, but it is definitely
 desirable to implement it more efficiently.  Given an efficient
-`hashtable-fold`, the following definitions can be used:
+`hashtable-sum`, the following definitions can be used:
 
-    (define (hashtable-map->list ht proc)
-      (hashtable-fold ht '()
+    (define (hashtable-map->lset ht proc)
+      (hashtable-sum ht '()
         (lambda (key value acc)
           (cons (proc key value) acc))))
 
     (define (hashtable-key-list ht)
-      (hashtable-map->list ht (lambda (key value) key)))
+      (hashtable-map->lset ht (lambda (key value) key)))
 
     (define (hashtable-value-list ht)
-      (hashtable-map->list ht (lambda (key value) value)))
+      (hashtable-map->lset ht (lambda (key value) value)))
 
 The `hashtable-entry-lists` procedure is simple to implement in terms
 of `hashtable-walk`.
@@ -712,7 +717,7 @@ The `hashtable-find` procedure is simple to implement in terms of
 efficiently at the platform level.
 
     (define (hashtable-find ht proc)
-      (let* ((alist (hashtable-map->list ht cons))
+      (let* ((alist (hashtable-map->lset ht cons))
              (found (find (lambda (pair)
                             (proc (car pair) (cdr pair)))
                           alist)))

@@ -44,7 +44,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><p>Access and mutation: <code>hashtable-lookup</code>, <code>hashtable-intern!</code></p></li>
 <li><p>Copying: <code>hashtable-clear-copy</code></p></li>
 <li><p>Key/value collections: <code>hashtable-values</code>, <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, <code>hashtable-entry-lists</code></p></li>
-<li><p>Iteration: <code>hashtable-walk</code>, <code>hashtable-update-all!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-fold</code>, <code>hashtable-map-&gt;list</code>, <code>hashtable-find</code></p></li>
+<li><p>Iteration: <code>hashtable-walk</code>, <code>hashtable-update-all!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-sum</code>, <code>hashtable-map-&gt;lset</code>, <code>hashtable-find</code></p></li>
 <li><p>Miscellaneous: <code>hashtable-empty?</code>, <code>hashtable-pop!</code></p></li>
 </ul>
 <p>Additionally, this specification adheres to the R7RS rule of specifying a single return value for procedures which don't have meaningful return values.</p>
@@ -228,14 +228,15 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
   (lambda (key value)
     (hashtable-set! hashtable-dest key value)))</code></pre>
 <ul>
-<li><code>(hashtable-fold hashtable init proc)</code> (procedure)</li>
+<li><code>(hashtable-sum hashtable init proc)</code> (procedure)</li>
 </ul>
-<p><code>Proc</code> should accept three arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-fold</code> procedure accumulates a result by applying <code>proc</code> once for every association in <code>hashtable</code>, passing it as arguments: the key, the value, and the result of the previous application or <code>init</code> at the first application. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
+<p><code>Proc</code> should accept three arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-sum</code> procedure accumulates a result by applying <code>proc</code> once for every association in <code>hashtable</code>, passing it as arguments: the key, the value, and the result of the previous application or <code>init</code> at the first application. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
 <ul>
-<li><code>(hashtable-map-&gt;list hashtable proc)</code> (procedure)</li>
+<li><code>(hashtable-map-&gt;lset hashtable proc)</code> (procedure)</li>
 </ul>
-<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map-&gt;list</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and accumulates the returned values into a list. The order in which <code>proc</code> is applied to the associations is unspecified.</p>
-<p><em>Note:</em> This procedure can trivially imitate <code>hashtable-&gt;alist</code>: <code>(hashtable-map-&gt;list hashtable cons)</code>.</p>
+<p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map-&gt;lset</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and accumulates the returned values into a list. The order in which <code>proc</code> is applied to the associations, and the order of the results in the returned list, are unspecified.</p>
+<p><em>Note:</em> This procedure can trivially imitate <code>hashtable-&gt;alist</code>: <code>(hashtable-map-&gt;lset hashtable cons)</code>.</p>
+<p><em>Warning:</em> Since the order of the results is unspecified, the returned list should be treated as a set or multiset. Relying on the order of results will produce nondeterministic programs.</p>
 <ul>
 <li><code>(hashtable-find hashtable proc)</code> (procedure)</li>
 </ul>
@@ -349,17 +350,17 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
                          (hashtable-delete! key)))
                      keys values)))</code></pre>
 <p>The <code>hashtable-merge!</code> procedure can be implemented as seen in its specification.</p>
-<p>The <code>hashtable-fold</code> procedure could be implemented in terms of <code>hashtable-entries</code>, <code>vector-&gt;list</code>, and <code>fold</code>, but it is definitely desirable to implement it more efficiently. Given an efficient <code>hashtable-fold</code>, the following definitions can be used:</p>
-<pre><code>(define (hashtable-map-&gt;list ht proc)
-  (hashtable-fold ht &#39;()
+<p>The <code>hashtable-sum</code> procedure could be implemented in terms of <code>hashtable-entries</code>, <code>vector-&gt;list</code>, and <code>fold</code>, but it is definitely desirable to implement it more efficiently. Given an efficient <code>hashtable-sum</code>, the following definitions can be used:</p>
+<pre><code>(define (hashtable-map-&gt;lset ht proc)
+  (hashtable-sum ht &#39;()
     (lambda (key value acc)
       (cons (proc key value) acc))))
 
 (define (hashtable-key-list ht)
-  (hashtable-map-&gt;list ht (lambda (key value) key)))
+  (hashtable-map-&gt;lset ht (lambda (key value) key)))
 
 (define (hashtable-value-list ht)
-  (hashtable-map-&gt;list ht (lambda (key value) value)))</code></pre>
+  (hashtable-map-&gt;lset ht (lambda (key value) value)))</code></pre>
 <p>The <code>hashtable-entry-lists</code> procedure is simple to implement in terms of <code>hashtable-walk</code>.</p>
 <pre><code>(define (hashtable-entry-lists ht)
   (let ((keys &#39;())
@@ -371,7 +372,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
     (values keys vals)))</code></pre>
 <p>The <code>hashtable-find</code> procedure is simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that it be implemented more efficiently at the platform level.</p>
 <pre><code>(define (hashtable-find ht proc)
-  (let* ((alist (hashtable-map-&gt;list ht cons))
+  (let* ((alist (hashtable-map-&gt;lset ht cons))
          (found (find (lambda (pair)
                         (proc (car pair) (cdr pair)))
                       alist)))
