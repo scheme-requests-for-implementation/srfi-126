@@ -84,9 +84,9 @@ API may be categorized as follows:
 - Key/value collections: `hashtable-values`, `hashtable-key-list`,
   `hashtable-value-list`, `hashtable-entry-lists`
 
-- Iteration: `hashtable-walk`, `hashtable-map!`, `hashtable-prune!`,
-  `hashtable-merge!`, `hashtable-fold`, `hashtable-map->list`,
-  `hashtable-find`
+- Iteration: `hashtable-walk`, `hashtable-update-all!`,
+  `hashtable-prune!`, `hashtable-merge!`, `hashtable-fold`,
+  `hashtable-map->list`, `hashtable-find`
 
 - Miscellaneous: `hashtable-empty?`, `hashtable-pop!`
 
@@ -455,15 +455,15 @@ The order in which `proc` is applied to the associations is
 unspecified.  Return values of `proc` are ignored.
 `Hashtable-walk` returns an unspecified value.
 
-- `(hashtable-map! hashtable proc)` (procedure)
+- `(hashtable-update-all! hashtable proc)` (procedure)
 
 `Proc` should accept two arguments, should return a single value, and
-should not mutate `hashtable`.  The `hashtable-map!` procedure applies
-`proc` once for every association in `hashtable`, passing it the key
-and value as arguments, and changes the value of the association to
-the return value of `proc`.  The order in which `proc` is applied to
-the associations is unspecified.  `Hashtable-map!` returns an
-unspecified value.
+should not mutate `hashtable`.  The `hashtable-update-all!` procedure
+applies `proc` once for every association in `hashtable`, passing it
+the key and value as arguments, and changes the value of the
+association to the return value of `proc`.  The order in which `proc`
+is applied to the associations is unspecified.
+`Hashtable-update-all!` returns an unspecified value.
 
 - `(hashtable-prune! hashtable proc)` (procedure)
 
@@ -650,7 +650,7 @@ The `hashtable-clear-copy` procedure can be implemented as follows:
                              capacity)
                          (hashtable-weakness hashtable)))))
 
-The `hashtable-values`, `hashtable-walk`, `hashtable-map!`, and
+The `hashtable-values`, `hashtable-walk`, `hashtable-update-all!`, and
 `hashtable-prune!` procedures are simple to implement in terms of
 `hashtable-entries`, but it is desirable that they be implemented more
 efficiently at the platform level.
@@ -663,7 +663,7 @@ efficiently at the platform level.
       (let-values (((keys values) (hashtable-entries ht)))
         (vector-for-each proc keys values)))
 
-    (define (hashtable-map! ht proc)
+    (define (hashtable-update-all! ht proc)
       (let-values (((keys values) (hashtable-entries ht)))
         (vector-for-each (lambda (key value)
                            (hashtable-set! ht key (proc key value)))
