@@ -515,7 +515,7 @@ unspecified.
 
 *Warning:* Since the order of the results is unspecified, the returned
 list should be treated as a set or multiset.  Relying on the order of
-results will produce nondeterministic programs.
+results will produce unpredictable programs.
 
 - `(hashtable-find hashtable proc)` (procedure)
 

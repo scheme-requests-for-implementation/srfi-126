@@ -237,7 +237,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map-&gt;lset</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and accumulates the returned values into a list. The order in which <code>proc</code> is applied to the associations, and the order of the results in the returned list, are unspecified.</p>
 <p><em>Note:</em> This procedure can trivially imitate <code>hashtable-&gt;alist</code>: <code>(hashtable-map-&gt;lset hashtable cons)</code>.</p>
-<p><em>Warning:</em> Since the order of the results is unspecified, the returned list should be treated as a set or multiset. Relying on the order of results will produce nondeterministic programs.</p>
+<p><em>Warning:</em> Since the order of the results is unspecified, the returned list should be treated as a set or multiset. Relying on the order of results will produce unpredictable programs.</p>
 <ul>
 <li><code>(hashtable-find hashtable proc)</code> (procedure)</li>
 </ul>
