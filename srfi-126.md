@@ -40,7 +40,12 @@ This specification provides an alternative to SRFI-125.  It builds on
 the R6RS hashtables API instead of SRFI-69, with only fully backwards
 compatible additions, most notably weak and ephemeral hashtables, and
 external representation.  Other additions are limited to utility
-procedures, whose criteria for inclusion are that they be:
+procedures.  It does not depend on SRFI-114 (Comparators), and does
+not attempt to specify thread-safety because typical multi-threaded
+use-cases will most likely involve locking more than just accesses and
+mutations of hashtables.
+
+The inclusion criteria for utility procedures is that they be
 
 - used frequently in typical user code, or
 - nontrivial to define or imitate when needed, or
@@ -65,12 +70,6 @@ the `hash-table-hash-function` procedure to return `#f` instead of the
 hash function passed to `make-hash-table`.  R6RS avoids the issue by
 providing dedicated constructors for `eq?` and `eqv?` based
 hashtables, and returning `#f` when their hash function is queried.
-
-This specification also does not depend on SRFI-114 (Comparators),
-does not specify a spurious amount of utility procedures, does not
-describe a bimap API, and does not attempt to specify thread-safety
-because typical multi-threaded use-cases will most likely involve
-locking more than just accesses and mutations of hashtables.
 
 The utility procedures provided by this SRFI in addition to the R6RS
 API may be categorized as follows:
