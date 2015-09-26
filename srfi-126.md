@@ -40,7 +40,12 @@ This specification provides an alternative to SRFI-125.  It builds on
 the R6RS hashtables API instead of SRFI-69, with only fully backwards
 compatible additions, most notably weak and ephemeral hashtables, and
 external representation.  Other additions are limited to utility
-procedures, whose criteria for inclusion are that they be:
+procedures.  It does not depend on SRFI-114 (Comparators), and does
+not attempt to specify thread-safety because typical multi-threaded
+use-cases will most likely involve locking more than just accesses and
+mutations of hashtables.
+
+The inclusion criteria for utility procedures is that they be
 
 - used frequently in typical user code, or
 - nontrivial to define or imitate when needed, or
@@ -66,12 +71,6 @@ hash function passed to `make-hash-table`.  R6RS avoids the issue by
 providing dedicated constructors for `eq?` and `eqv?` based
 hashtables, and returning `#f` when their hash function is queried.
 
-This specification also does not depend on SRFI-114 (Comparators),
-does not specify a spurious amount of utility procedures, does not
-describe a bimap API, and does not attempt to specify thread-safety
-because typical multi-threaded use-cases will most likely involve
-locking more than just accesses and mutations of hashtables.
-
 The utility procedures provided by this SRFI in addition to the R6RS
 API may be categorized as follows:
 
@@ -80,7 +79,7 @@ API may be categorized as follows:
 
 - Access and mutation: `hashtable-lookup`, `hashtable-intern!`
 
-- Copying: `hashtable-clear-copy`
+- Copying: `hashtable-empty-copy`
 
 - Key/value collections: `hashtable-values`, `hashtable-key-list`,
   `hashtable-value-list`, `hashtable-entry-lists`
@@ -309,7 +308,7 @@ When a hashtable constant appears within a quasiquote expression and
 is not already unquoted, the behavior of the quasiquote algorithm on
 the hashtable can be explained as follows:
 
-    (let ((copy (hashtable-clear-copy hashtable #t)))
+    (let ((copy (hashtable-empty-copy hashtable #t)))
       (hashtable-walk hashtable
         (lambda (key value)
           (let ((key (apply-quasiquote key))
@@ -396,8 +395,8 @@ value.  If `capacity` is provided and not `#f`, it must be an exact
 non-negative integer and the current capacity of the hashtable is
 reset to approximately `capacity` elements.
 
-- `(hashtable-clear-copy hashtable)`
-- `(hashtable-clear-copy hashtable capacity)`
+- `(hashtable-empty-copy hashtable)`
+- `(hashtable-empty-copy hashtable capacity)`
 
 Returns a newly allocated mutable hashtable that has the same hash and
 equivalence functions and weakness attribute as `hashtable`.  The
@@ -515,7 +514,7 @@ unspecified.
 
 *Warning:* Since the order of the results is unspecified, the returned
 list should be treated as a set or multiset.  Relying on the order of
-results will produce nondeterministic programs.
+results will produce unpredictable programs.
 
 - `(hashtable-find hashtable proc)` (procedure)
 
@@ -643,11 +642,11 @@ efficiently at the platform level:
             (hashtable-set! ht key value)
             value)))
 
-The `hashtable-clear-copy` procedure can be implemented as follows:
+The `hashtable-empty-copy` procedure can be implemented as follows:
 
-    (define hashtable-clear-copy
+    (define hashtable-empty-copy
       (case-lambda
-        ((hashtable) (hashtable-clear-copy hashtable #f))
+        ((hashtable) (hashtable-empty-copy hashtable #f))
         ((hashtable capacity)
          (make-hashtable (hashtable-hash-function hashtable)
                          (hashtable-equivalence-function hashtable)
@@ -757,6 +756,12 @@ Acknowledgments
 Thanks to Taylor Campbell and MIT/GNU Scheme for inspiring the idea of
 weak and ephemeral hashtables, some miscellaneous procedures, and
 overall input in the design of this SRFI.
+
+Thanks to Mark Weaver for his review of and comments on the SRFI,
+which had substantial effect on the result.
+
+Thanks also to everyone on the discussion mailing list for their
+extensive input that helped shape this SRFI.
 
 
 Copyright and license

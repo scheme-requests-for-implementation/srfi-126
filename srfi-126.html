@@ -30,7 +30,8 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <h2 id="abstract">Abstract</h2>
 <p>We provide a hashtable API that takes the R6RS hashtables API as a basis and makes backwards compatible additions such as support for weak hashtables, external representation, and utility procedures.</p>
 <h2 id="rationale">Rationale</h2>
-<p>This specification provides an alternative to SRFI-125. It builds on the R6RS hashtables API instead of SRFI-69, with only fully backwards compatible additions, most notably weak and ephemeral hashtables, and external representation. Other additions are limited to utility procedures, whose criteria for inclusion are that they be:</p>
+<p>This specification provides an alternative to SRFI-125. It builds on the R6RS hashtables API instead of SRFI-69, with only fully backwards compatible additions, most notably weak and ephemeral hashtables, and external representation. Other additions are limited to utility procedures. It does not depend on SRFI-114 (Comparators), and does not attempt to specify thread-safety because typical multi-threaded use-cases will most likely involve locking more than just accesses and mutations of hashtables.</p>
+<p>The inclusion criteria for utility procedures is that they be</p>
 <ul>
 <li>used frequently in typical user code, or</li>
 <li>nontrivial to define or imitate when needed, or</li>
@@ -38,12 +39,11 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p>There is &quot;full&quot; backwards compatibility in the sense that all R6RS hashtable operations within a piece of code that execute without raising exceptions will continue to execute without raising exceptions when the hashtable library in use is changed to an implementation of this specification. On the other hand, R6RS's stark requirement of raising an exception when a procedure's use does not exactly correspond to the description in R6RS (which effectively prohibits extensions to its procedures' semantics) is ignored.</p>
 <p>The R6RS hashtables API is favored over SRFI-69 because the latter contains serious flaws. In particular, exposing the hash functions for the <code>eq?</code> and <code>eqv?</code> procedures is a hindrance for Scheme implementations with a moving garbage collector. SRFI-125 works around this by allowing the user-provided hash function passed to <code>make-hash-table</code> to be ignored by the implementation, and allowing the <code>hash-table-hash-function</code> procedure to return <code>#f</code> instead of the hash function passed to <code>make-hash-table</code>. R6RS avoids the issue by providing dedicated constructors for <code>eq?</code> and <code>eqv?</code> based hashtables, and returning <code>#f</code> when their hash function is queried.</p>
-<p>This specification also does not depend on SRFI-114 (Comparators), does not specify a spurious amount of utility procedures, does not describe a bimap API, and does not attempt to specify thread-safety because typical multi-threaded use-cases will most likely involve locking more than just accesses and mutations of hashtables.</p>
 <p>The utility procedures provided by this SRFI in addition to the R6RS API may be categorized as follows:</p>
 <ul>
 <li><p>Constructors: <code>alist-&gt;eq-hashtable</code>, <code>alist-&gt;eqv-hashtable</code>, <code>alist-&gt;hashtable</code></p></li>
 <li><p>Access and mutation: <code>hashtable-lookup</code>, <code>hashtable-intern!</code></p></li>
-<li><p>Copying: <code>hashtable-clear-copy</code></p></li>
+<li><p>Copying: <code>hashtable-empty-copy</code></p></li>
 <li><p>Key/value collections: <code>hashtable-values</code>, <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, <code>hashtable-entry-lists</code></p></li>
 <li><p>Iteration: <code>hashtable-walk</code>, <code>hashtable-update-all!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-sum</code>, <code>hashtable-map-&gt;lset</code>, <code>hashtable-find</code></p></li>
 <li><p>Miscellaneous: <code>hashtable-empty?</code>, <code>hashtable-pop!</code></p></li>
@@ -120,7 +120,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <h3 id="quasiquote">Quasiquote</h3>
 <p>An implementation supporting external representation for hashtables may optionally extend <code>quasiquote</code> for hashtable constants.</p>
 <p>When a hashtable constant appears within a quasiquote expression and is not already unquoted, the behavior of the quasiquote algorithm on the hashtable can be explained as follows:</p>
-<pre><code>(let ((copy (hashtable-clear-copy hashtable #t)))
+<pre><code>(let ((copy (hashtable-empty-copy hashtable #t)))
   (hashtable-walk hashtable
     (lambda (key value)
       (let ((key (apply-quasiquote key))
@@ -178,8 +178,8 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p>Removes all associations from <code>hashtable</code> and returns an unspecified value. If <code>capacity</code> is provided and not <code>#f</code>, it must be an exact non-negative integer and the current capacity of the hashtable is reset to approximately <code>capacity</code> elements.</p>
 <ul>
-<li><code>(hashtable-clear-copy hashtable)</code></li>
-<li><code>(hashtable-clear-copy hashtable capacity)</code></li>
+<li><code>(hashtable-empty-copy hashtable)</code></li>
+<li><code>(hashtable-empty-copy hashtable capacity)</code></li>
 </ul>
 <p>Returns a newly allocated mutable hashtable that has the same hash and equivalence functions and weakness attribute as <code>hashtable</code>. The <code>capacity</code> argument may be <code>#t</code> to set the initial capacity of the copy to approximately <code>(hashtable-size hashtable)</code> elements; otherwise the semantics of <code>make-eq-hashtable</code> apply to the <code>capacity</code> argument.</p>
 <ul>
@@ -237,7 +237,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-map-&gt;lset</code> procedure applies <code>proc</code> once for every association in <code>hashtable</code>, passing it the key and value as arguments, and accumulates the returned values into a list. The order in which <code>proc</code> is applied to the associations, and the order of the results in the returned list, are unspecified.</p>
 <p><em>Note:</em> This procedure can trivially imitate <code>hashtable-&gt;alist</code>: <code>(hashtable-map-&gt;lset hashtable cons)</code>.</p>
-<p><em>Warning:</em> Since the order of the results is unspecified, the returned list should be treated as a set or multiset. Relying on the order of results will produce nondeterministic programs.</p>
+<p><em>Warning:</em> Since the order of the results is unspecified, the returned list should be treated as a set or multiset. Relying on the order of results will produce unpredictable programs.</p>
 <ul>
 <li><code>(hashtable-find hashtable proc)</code> (procedure)</li>
 </ul>
@@ -318,10 +318,10 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
       (let ((value (default-proc)))
         (hashtable-set! ht key value)
         value)))</code></pre>
-<p>The <code>hashtable-clear-copy</code> procedure can be implemented as follows:</p>
-<pre><code>(define hashtable-clear-copy
+<p>The <code>hashtable-empty-copy</code> procedure can be implemented as follows:</p>
+<pre><code>(define hashtable-empty-copy
   (case-lambda
-    ((hashtable) (hashtable-clear-copy hashtable #f))
+    ((hashtable) (hashtable-empty-copy hashtable #f))
     ((hashtable capacity)
      (make-hashtable (hashtable-hash-function hashtable)
                      (hashtable-equivalence-function hashtable)
@@ -393,6 +393,8 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>External representation cannot be implemented by portable library code.</p>
 <h2 id="acknowledgments">Acknowledgments</h2>
 <p>Thanks to Taylor Campbell and MIT/GNU Scheme for inspiring the idea of weak and ephemeral hashtables, some miscellaneous procedures, and overall input in the design of this SRFI.</p>
+<p>Thanks to Mark Weaver for his review of and comments on the SRFI, which had substantial effect on the result.</p>
+<p>Thanks also to everyone on the discussion mailing list for their extensive input that helped shape this SRFI.</p>
 <h2 id="copyright-and-license">Copyright and license</h2>
 <p>Copyright (C) Taylan Ulrich Bayırlı/Kammer (2015). All Rights Reserved.</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
