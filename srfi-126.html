@@ -43,7 +43,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <ul>
 <li><p>Constructors: <code>alist-&gt;eq-hashtable</code>, <code>alist-&gt;eqv-hashtable</code>, <code>alist-&gt;hashtable</code></p></li>
 <li><p>Access and mutation: <code>hashtable-lookup</code>, <code>hashtable-intern!</code></p></li>
-<li><p>Copying: <code>hashtable-clear-copy</code></p></li>
+<li><p>Copying: <code>hashtable-empty-copy</code></p></li>
 <li><p>Key/value collections: <code>hashtable-values</code>, <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, <code>hashtable-entry-lists</code></p></li>
 <li><p>Iteration: <code>hashtable-walk</code>, <code>hashtable-update-all!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-sum</code>, <code>hashtable-map-&gt;lset</code>, <code>hashtable-find</code></p></li>
 <li><p>Miscellaneous: <code>hashtable-empty?</code>, <code>hashtable-pop!</code></p></li>
@@ -120,7 +120,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <h3 id="quasiquote">Quasiquote</h3>
 <p>An implementation supporting external representation for hashtables may optionally extend <code>quasiquote</code> for hashtable constants.</p>
 <p>When a hashtable constant appears within a quasiquote expression and is not already unquoted, the behavior of the quasiquote algorithm on the hashtable can be explained as follows:</p>
-<pre><code>(let ((copy (hashtable-clear-copy hashtable #t)))
+<pre><code>(let ((copy (hashtable-empty-copy hashtable #t)))
   (hashtable-walk hashtable
     (lambda (key value)
       (let ((key (apply-quasiquote key))
@@ -178,8 +178,8 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p>Removes all associations from <code>hashtable</code> and returns an unspecified value. If <code>capacity</code> is provided and not <code>#f</code>, it must be an exact non-negative integer and the current capacity of the hashtable is reset to approximately <code>capacity</code> elements.</p>
 <ul>
-<li><code>(hashtable-clear-copy hashtable)</code></li>
-<li><code>(hashtable-clear-copy hashtable capacity)</code></li>
+<li><code>(hashtable-empty-copy hashtable)</code></li>
+<li><code>(hashtable-empty-copy hashtable capacity)</code></li>
 </ul>
 <p>Returns a newly allocated mutable hashtable that has the same hash and equivalence functions and weakness attribute as <code>hashtable</code>. The <code>capacity</code> argument may be <code>#t</code> to set the initial capacity of the copy to approximately <code>(hashtable-size hashtable)</code> elements; otherwise the semantics of <code>make-eq-hashtable</code> apply to the <code>capacity</code> argument.</p>
 <ul>
@@ -318,10 +318,10 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
       (let ((value (default-proc)))
         (hashtable-set! ht key value)
         value)))</code></pre>
-<p>The <code>hashtable-clear-copy</code> procedure can be implemented as follows:</p>
-<pre><code>(define hashtable-clear-copy
+<p>The <code>hashtable-empty-copy</code> procedure can be implemented as follows:</p>
+<pre><code>(define hashtable-empty-copy
   (case-lambda
-    ((hashtable) (hashtable-clear-copy hashtable #f))
+    ((hashtable) (hashtable-empty-copy hashtable #f))
     ((hashtable capacity)
      (make-hashtable (hashtable-hash-function hashtable)
                      (hashtable-equivalence-function hashtable)

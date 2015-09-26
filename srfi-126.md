@@ -80,7 +80,7 @@ API may be categorized as follows:
 
 - Access and mutation: `hashtable-lookup`, `hashtable-intern!`
 
-- Copying: `hashtable-clear-copy`
+- Copying: `hashtable-empty-copy`
 
 - Key/value collections: `hashtable-values`, `hashtable-key-list`,
   `hashtable-value-list`, `hashtable-entry-lists`
@@ -309,7 +309,7 @@ When a hashtable constant appears within a quasiquote expression and
 is not already unquoted, the behavior of the quasiquote algorithm on
 the hashtable can be explained as follows:
 
-    (let ((copy (hashtable-clear-copy hashtable #t)))
+    (let ((copy (hashtable-empty-copy hashtable #t)))
       (hashtable-walk hashtable
         (lambda (key value)
           (let ((key (apply-quasiquote key))
@@ -396,8 +396,8 @@ value.  If `capacity` is provided and not `#f`, it must be an exact
 non-negative integer and the current capacity of the hashtable is
 reset to approximately `capacity` elements.
 
-- `(hashtable-clear-copy hashtable)`
-- `(hashtable-clear-copy hashtable capacity)`
+- `(hashtable-empty-copy hashtable)`
+- `(hashtable-empty-copy hashtable capacity)`
 
 Returns a newly allocated mutable hashtable that has the same hash and
 equivalence functions and weakness attribute as `hashtable`.  The
@@ -643,11 +643,11 @@ efficiently at the platform level:
             (hashtable-set! ht key value)
             value)))
 
-The `hashtable-clear-copy` procedure can be implemented as follows:
+The `hashtable-empty-copy` procedure can be implemented as follows:
 
-    (define hashtable-clear-copy
+    (define hashtable-empty-copy
       (case-lambda
-        ((hashtable) (hashtable-clear-copy hashtable #f))
+        ((hashtable) (hashtable-empty-copy hashtable #f))
         ((hashtable capacity)
          (make-hashtable (hashtable-hash-function hashtable)
                          (hashtable-equivalence-function hashtable)
