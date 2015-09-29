@@ -162,7 +162,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <ul>
 <li><code>(hashtable-update! hashtable key proc default)</code> (procedure)</li>
 </ul>
-<p><code>Proc</code> should accept one argument, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-update!</code> procedure applies <code>proc</code> to the value in <code>hashtable</code> associated with <code>key</code>, or to <code>default</code> if <code>hashtable</code> does not contain an association for <code>key</code>. The hashtable is then changed to associate <code>key</code> with the value returned by <code>proc</code>.</p>
+<p><code>Proc</code> should accept one argument, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-update!</code> procedure applies <code>proc</code> to the value in <code>hashtable</code> associated with <code>key</code>, or to <code>default</code> if <code>hashtable</code> does not contain an association for <code>key</code>. The hashtable is then changed to associate <code>key</code> with the value returned by <code>proc</code>, and the value returned by <code>hashtable-update!</code>.</p>
 <ul>
 <li><code>(hashtable-intern! hashtable key default-proc)</code> (procedure)</li>
 </ul>

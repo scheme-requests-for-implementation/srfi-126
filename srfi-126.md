@@ -368,7 +368,7 @@ should not mutate `hashtable`.  The `hashtable-update!` procedure
 applies `proc` to the value in `hashtable` associated with `key`, or
 to `default` if `hashtable` does not contain an association for `key`.
 The hashtable is then changed to associate `key` with the value
-returned by `proc`.
+returned by `proc`, and the value returned by `hashtable-update!`.
 
 - `(hashtable-intern! hashtable key default-proc)` (procedure)
 
