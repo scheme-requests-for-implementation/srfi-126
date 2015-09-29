@@ -1,3 +1,5 @@
+% R6RS-based hashtables
+
 Author
 ------
 
