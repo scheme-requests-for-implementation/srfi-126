@@ -579,6 +579,10 @@ this section are acceptable as the hash functions of a hashtable only
 if the keys on which they are called are not mutated while they remain
 in use as keys in the hashtable.
 
+An implementation may initialize its hash functions with a salt value
+at program startup, meaning they are not guaranteed to return the same
+values for the same inputs across multiple runs of a program.
+
 - `(equal-hash obj)` (procedure)
 
 Returns an integer hash value for `obj`, based on its structure and
