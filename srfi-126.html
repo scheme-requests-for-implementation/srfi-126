@@ -47,7 +47,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><p>Copying: <code>hashtable-empty-copy</code></p></li>
 <li><p>Key/value collections: <code>hashtable-values</code>, <code>hashtable-key-list</code>, <code>hashtable-value-list</code>, <code>hashtable-entry-lists</code></p></li>
 <li><p>Iteration: <code>hashtable-walk</code>, <code>hashtable-update-all!</code>, <code>hashtable-prune!</code>, <code>hashtable-merge!</code>, <code>hashtable-sum</code>, <code>hashtable-map-&gt;lset</code>, <code>hashtable-find</code></p></li>
-<li><p>Miscellaneous: <code>hashtable-empty?</code>, <code>hashtable-pop!</code></p></li>
+<li><p>Miscellaneous: <code>hashtable-empty?</code>, <code>hashtable-pop!</code>, <code>hashtable-inc!</code>, <code>hashtable-dec!</code></p></li>
 </ul>
 <p>Additionally, this specification adheres to the R7RS rule of specifying a single return value for procedures which don't have meaningful return values.</p>
 <h2 id="specification">Specification</h2>
@@ -259,6 +259,20 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
     (error))
   (hashtable-delete! hashtable key)
   (values key value))</code></pre>
+<ul>
+<li><code>(hashtable-inc! hashtable key)</code> (procedure)</li>
+<li><code>(hashtable-inc! hashtable key x)</code></li>
+</ul>
+<p>Effectively equivalent to:</p>
+<pre><code>(hashtable-update! hashtable key (lambda (x) (+ x k)) 0)</code></pre>
+<p>where x is 1 when not provided.</p>
+<ul>
+<li><code>(hashtable-dec! hashtable key)</code> (procedure)</li>
+<li><code>(hashtable-dec! hashtable key x)</code></li>
+</ul>
+<p>Effectively equivalent to:</p>
+<pre><code>(hashtable-update! hashtable key (lambda (x) (- x k)) 0)</code></pre>
+<p>where x is 1 when not provided.</p>
 <h3 id="inspection">Inspection</h3>
 <ul>
 <li><code>(hashtable-equivalence-function hashtable)</code> (procedure)</li>
@@ -391,7 +405,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
         (when (proc key value)
           (return key value #t))))
     (return #f #f #f)))</code></pre>
-<p>The <code>hashtable-empty?</code> and <code>hashtable-pop!</code> procedures can be implemented as seen in their specifications.</p>
+<p>The <code>hashtable-empty?</code>, <code>hashtable-pop!</code>, <code>hashtable-inc!</code>, and <code>hashtable-dec!</code> procedures can be implemented as seen in their specifications.</p>
 <p>Weak and ephemeral hashtables cannot be implemented by portable library code. They need to be implemented either directly at the platform level, or by using functionality which in turn needs to be implemented at the platform level, such as weak and ephemeral pairs. See MIT/GNU Scheme for an example.</p>
 <p>External representation cannot be implemented by portable library code.</p>
 <h2 id="acknowledgments">Acknowledgments</h2>

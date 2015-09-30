@@ -91,7 +91,8 @@ API may be categorized as follows:
   `hashtable-prune!`, `hashtable-merge!`, `hashtable-sum`,
   `hashtable-map->lset`, `hashtable-find`
 
-- Miscellaneous: `hashtable-empty?`, `hashtable-pop!`
+- Miscellaneous: `hashtable-empty?`, `hashtable-pop!`,
+  `hashtable-inc!`, `hashtable-dec!`
 
 Additionally, this specification adheres to the R7RS rule of
 specifying a single return value for procedures which don't have
@@ -549,6 +550,24 @@ Effectively equivalent to:
       (hashtable-delete! hashtable key)
       (values key value))
 
+- `(hashtable-inc! hashtable key)` (procedure)
+- `(hashtable-inc! hashtable key x)`
+
+Effectively equivalent to:
+
+    (hashtable-update! hashtable key (lambda (x) (+ x k)) 0)
+
+where x is 1 when not provided.
+
+- `(hashtable-dec! hashtable key)` (procedure)
+- `(hashtable-dec! hashtable key x)`
+
+Effectively equivalent to:
+
+    (hashtable-update! hashtable key (lambda (x) (- x k)) 0)
+
+where x is 1 when not provided.
+
 
 ### Inspection
 
@@ -747,8 +766,9 @@ efficient `hashtable-find`:
               (return key value #t))))
         (return #f #f #f)))
 
-The `hashtable-empty?` and `hashtable-pop!` procedures can be
-implemented as seen in their specifications.
+The `hashtable-empty?`, `hashtable-pop!`, `hashtable-inc!`, and
+`hashtable-dec!` procedures can be implemented as seen in their
+specifications.
 
 Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the
