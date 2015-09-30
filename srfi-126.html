@@ -140,9 +140,10 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p>Returns the number of keys contained in <code>hashtable</code> as an exact integer object.</p>
 <ul>
-<li><code>(hashtable-ref hashtable key default)</code> (procedure)</li>
+<li><code>(hashtable-ref hashtable key)</code> (procedure)</li>
+<li><code>(hashtable-ref hashtable key default)</code></li>
 </ul>
-<p>Returns the value in <code>hashtable</code> associated with <code>key</code>. If <code>hashtable</code> does not contain an association for <code>key</code>, <code>default</code> is returned.</p>
+<p>Returns the value in <code>hashtable</code> associated with <code>key</code>. If <code>hashtable</code> does not contain an association for <code>key</code>, <code>default</code> is returned. If <code>hashtable</code> does not contain an association for <code>key</code> and the <code>default</code> argument is not provided, an error should be signaled.</p>
 <ul>
 <li><code>(hashtable-set! hashtable key obj)</code> (procedure)</li>
 </ul>

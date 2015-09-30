@@ -335,11 +335,14 @@ Returns `#t` if `obj` is a hashtable, `#f` otherwise.
 Returns the number of keys contained in `hashtable` as an exact
 integer object.
 
-- `(hashtable-ref hashtable key default)` (procedure)
+- `(hashtable-ref hashtable key)` (procedure)
+- `(hashtable-ref hashtable key default)`
 
 Returns the value in `hashtable` associated with `key`.  If
 `hashtable` does not contain an association for `key`, `default` is
-returned.
+returned.  If `hashtable` does not contain an association for `key`
+and the `default` argument is not provided, an error should be
+signaled.
 
 - `(hashtable-set! hashtable key obj)` (procedure)
 
