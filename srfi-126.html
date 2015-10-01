@@ -292,7 +292,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>Returns <code>#t</code> if <code>hashtable</code> is mutable, otherwise <code>#f</code>.</p>
 <h3 id="hash-functions">Hash functions</h3>
 <p>The <code>equal-hash</code>, <code>string-hash</code>, and <code>string-ci-hash</code> procedures of this section are acceptable as the hash functions of a hashtable only if the keys on which they are called are not mutated while they remain in use as keys in the hashtable.</p>
-<p>An implementation may initialize its hash functions with a salt value at program startup, meaning they are not guaranteed to return the same values for the same inputs across multiple runs of a program.</p>
+<p>An implementation may initialize its hash functions with a random salt value at program startup, meaning they are not guaranteed to return the same values for the same inputs across multiple runs of a program. If however the environment variable <code>SRFI_126_HASH_SEED</code> is set before program startup, then the salt value is derived from the value of this environment variable in a deterministic manner.</p>
 <ul>
 <li><code>(equal-hash obj)</code> (procedure)</li>
 </ul>

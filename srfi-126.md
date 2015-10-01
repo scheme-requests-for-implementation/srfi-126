@@ -603,9 +603,12 @@ this section are acceptable as the hash functions of a hashtable only
 if the keys on which they are called are not mutated while they remain
 in use as keys in the hashtable.
 
-An implementation may initialize its hash functions with a salt value
-at program startup, meaning they are not guaranteed to return the same
-values for the same inputs across multiple runs of a program.
+An implementation may initialize its hash functions with a random salt
+value at program startup, meaning they are not guaranteed to return
+the same values for the same inputs across multiple runs of a program.
+If however the environment variable `SRFI_126_HASH_SEED` is set before
+program startup, then the salt value is derived from the value of this
+environment variable in a deterministic manner.
 
 - `(equal-hash obj)` (procedure)
 
