@@ -31,14 +31,15 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <h2 id="abstract">Abstract</h2>
 <p>We provide a hashtable API that takes the R6RS hashtables API as a basis and makes backwards compatible additions such as support for weak hashtables, external representation, API support for double hashing implementations, and utility procedures.</p>
 <h2 id="rationale">Rationale</h2>
-<p>This specification provides an alternative to SRFI-125. It builds on the R6RS hashtables API instead of SRFI-69, with only fully backwards compatible additions such as weak and ephemeral hashtables, an external representation, and API support for hashing strategies that require a pair of hash functions. Other additions are limited to utility procedures. It does not depend on SRFI-114 (Comparators), and does not attempt to specify thread-safety because typical multi-threaded use-cases will most likely involve locking more than just accesses and mutations of hashtables.</p>
+<p>This specification provides an alternative to SRFI-125. It builds on the R6RS hashtables API instead of SRFI-69, with backwards compatible additions such as weak and ephemeral hashtables, an external representation, API support for hashing strategies that require a pair of hash functions, and better API support for very large hash tables. Other additions are limited to utility procedures. It does not depend on SRFI-114 (Comparators), and does not attempt to specify thread-safety because typical multi-threaded use-cases will most likely involve locking more than just accesses and mutations of hashtables.</p>
 <p>The inclusion criteria for utility procedures is that they be</p>
 <ul>
 <li>used frequently in typical user code, or</li>
 <li>nontrivial to define or imitate when needed, or</li>
 <li>essential for the efficient implementation of further operations.</li>
 </ul>
-<p>There is &quot;full&quot; backwards compatibility in the sense that all R6RS hashtable operations within a piece of code that execute without raising exceptions will continue to execute without raising exceptions when the hashtable library in use is changed to an implementation of this specification. On the other hand, R6RS's stark requirement of raising an exception when a procedure's use does not exactly correspond to the description in R6RS (which effectively prohibits extensions to its procedures' semantics) is ignored.</p>
+<p>There is almost full backwards compatibility in that all R6RS hashtable operations within a piece of code that execute without raising exceptions will continue to execute without raising exceptions when the hashtable library in use is changed to an implementation of this specification, with the sole exception of code that uses custom hash functions; these hash functions need to be extended to accept a second argument, which however they may ignore.</p>
+<p>On the other hand, R6RS's stark requirement of raising an exception when a procedure's use does not exactly correspond to the description in R6RS (which effectively prohibits extensions to its procedures' semantics) is ignored.</p>
 <p>The R6RS hashtables API is favored over SRFI-69 because the latter contains serious flaws. In particular, exposing the hash functions for the <code>eq?</code> and <code>eqv?</code> procedures is a hindrance for Scheme implementations with a moving garbage collector. SRFI-125 works around this by allowing the user-provided hash function passed to <code>make-hash-table</code> to be ignored by the implementation, and allowing the <code>hash-table-hash-function</code> procedure to return <code>#f</code> instead of the hash function passed to <code>make-hash-table</code>. R6RS avoids the issue by providing dedicated constructors for <code>eq?</code> and <code>eqv?</code> based hashtables, and returning <code>#f</code> when their hash function is queried.</p>
 <p>The utility procedures provided by this SRFI in addition to the R6RS API may be categorized as follows:</p>
 <ul>
@@ -80,7 +81,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(make-hashtable hash equiv capacity weakness)</code></li>
 </ul>
 <p>If <code>hash</code> is <code>#f</code> and <code>equiv</code> is the <code>eq?</code> procedure, the semantics of <code>make-eq-hashtable</code> apply to the rest of the arguments. If <code>hash</code> is <code>#f</code> and <code>equiv</code> is the <code>eqv?</code> procedure, the semantics of <code>make-eqv-hashtable</code> apply to the rest of the arguments.</p>
-<p>Otherwise, <code>hash</code> must be a pair of hash functions or a hash function, and and <code>equiv</code> must be a procedure. A hash function is a procedure that must accept a key as an argument and should return a non-negative exact integer object. <code>Equiv</code> should accept two keys as arguments and return a single value. None of the procedures should mutate the hashtable returned by <code>make-hashtable</code>. The <code>make-hashtable</code> procedure returns a newly allocated mutable hashtable using the function(s) specified by <code>hash</code> as its hash function(s), and <code>equiv</code> as the equivalence function used to compare keys. Implementations preferring a hashing strategy involving a pair of hash functions may automatically derive a pair of hash functions from a given single hash function. The semantics of the remaining arguments are as in <code>make-eq-hashtable</code> and <code>make-eqv-hashtable</code>.</p>
+<p>Otherwise, <code>hash</code> must be a pair of hash functions or a hash function, and and <code>equiv</code> must be a procedure. A hash function is a procedure that must accept a key and a bound as an argument and should return a non-negative exact integer object. (See also the section on hash functions.) <code>Equiv</code> should accept two keys as arguments and return a single value. None of the procedures should mutate the hashtable returned by <code>make-hashtable</code>. The <code>make-hashtable</code> procedure returns a newly allocated mutable hashtable using the function(s) specified by <code>hash</code> as its hash function(s), and <code>equiv</code> as the equivalence function used to compare keys. Implementations preferring a hashing strategy involving a pair of hash functions may automatically derive a pair of hash functions from a given single hash function. The semantics of the remaining arguments are as in <code>make-eq-hashtable</code> and <code>make-eqv-hashtable</code>.</p>
 <p>The hash functions and <code>equiv</code> should behave like pure functions on the domain of keys. For example, the <code>string-hash</code> and <code>string=?</code> procedures are permissible only if all keys are strings and the contents of those strings are never changed so long as any of them continues to serve as a key in the hashtable. Furthermore, any pair of keys for which <code>equiv</code> returns true should be hashed to the same exact integer objects by the given hash function(s).</p>
 <p><em>Note:</em> Hashtables are allowed to cache the results of calling a hash function and equivalence function, so programs cannot rely on a hash function being called for every lookup or update. Furthermore any hashtable operation may call a hash function more than once.</p>
 <ul>
@@ -293,21 +294,26 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <h3 id="hash-functions">Hash functions</h3>
 <p>The <code>equal-hash</code>, <code>string-hash</code>, and <code>string-ci-hash</code> procedures of this section are acceptable as the hash functions of a hashtable only if the keys on which they are called are not mutated while they remain in use as keys in the hashtable.</p>
 <p>An implementation may initialize its hash functions with a random salt value at program startup, meaning they are not guaranteed to return the same values for the same inputs across multiple runs of a program. If however the environment variable <code>SRFI_126_HASH_SEED</code> is set before program startup, then the salt value is derived from the value of this environment variable in a deterministic manner.</p>
+<p>Every hash function takes an optional <code>bound</code> argument which must be an exact non-negative integer. It signifies that the function need not return an integer greater than <code>bound</code>, although it may do so.</p>
 <ul>
 <li><code>(equal-hash obj)</code> (procedure)</li>
+<li><code>(equal-hash obj bound)</code></li>
 </ul>
 <p>Returns an integer hash value for <code>obj</code>, based on its structure and current contents. This hash function is suitable for use with <code>equal?</code> as an equivalence function.</p>
 <p><em>Note:</em> Like <code>equal?</code>, the <code>equal-hash</code> procedure must always terminate, even if its arguments contain cycles.</p>
 <ul>
 <li><code>(string-hash string)</code> (procedure)</li>
+<li><code>(string-hash string bound)</code></li>
 </ul>
 <p>Returns an integer hash value for <code>string</code>, based on its current contents. This hash function is suitable for use with <code>string=?</code> as an equivalence function.</p>
 <ul>
 <li><code>(string-ci-hash string)</code> (procedure)</li>
+<li><code>(string-ci-hash string bound)</code></li>
 </ul>
 <p>Returns an integer hash value for <code>string</code> based on its current contents, ignoring case. This hash function is suitable for use with <code>string-ci=?</code> as an equivalence function.</p>
 <ul>
 <li><code>(symbol-hash symbol)</code> (procedure)</li>
+<li><code>(symbol-hash symbol bound)</code></li>
 </ul>
 <p>Returns an integer hash value for <code>symbol</code>.</p>
 <ul>

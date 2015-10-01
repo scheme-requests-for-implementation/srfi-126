@@ -41,14 +41,15 @@ Rationale
 ---------
 
 This specification provides an alternative to SRFI-125.  It builds on
-the R6RS hashtables API instead of SRFI-69, with only fully backwards
-compatible additions such as weak and ephemeral hashtables, an
-external representation, and API support for hashing strategies that
-require a pair of hash functions.  Other additions are limited to
-utility procedures.  It does not depend on SRFI-114 (Comparators), and
-does not attempt to specify thread-safety because typical
-multi-threaded use-cases will most likely involve locking more than
-just accesses and mutations of hashtables.
+the R6RS hashtables API instead of SRFI-69, with backwards compatible
+additions such as weak and ephemeral hashtables, an external
+representation, API support for hashing strategies that require a pair
+of hash functions, and better API support for very large hash tables.
+Other additions are limited to utility procedures.  It does not depend
+on SRFI-114 (Comparators), and does not attempt to specify
+thread-safety because typical multi-threaded use-cases will most
+likely involve locking more than just accesses and mutations of
+hashtables.
 
 The inclusion criteria for utility procedures is that they be
 
@@ -56,14 +57,18 @@ The inclusion criteria for utility procedures is that they be
 - nontrivial to define or imitate when needed, or
 - essential for the efficient implementation of further operations.
 
-There is "full" backwards compatibility in the sense that all R6RS
+There is almost full backwards compatibility in that all R6RS
 hashtable operations within a piece of code that execute without
 raising exceptions will continue to execute without raising exceptions
 when the hashtable library in use is changed to an implementation of
-this specification.  On the other hand, R6RS's stark requirement of
-raising an exception when a procedure's use does not exactly
-correspond to the description in R6RS (which effectively prohibits
-extensions to its procedures' semantics) is ignored.
+this specification, with the sole exception of code that uses custom
+hash functions; these hash functions need to be extended to accept a
+second argument, which however they may ignore.
+
+On the other hand, R6RS's stark requirement of raising an exception
+when a procedure's use does not exactly correspond to the description
+in R6RS (which effectively prohibits extensions to its procedures'
+semantics) is ignored.
 
 The R6RS hashtables API is favored over SRFI-69 because the latter
 contains serious flaws.  In particular, exposing the hash functions
@@ -215,17 +220,18 @@ If `hash` is `#f` and `equiv` is the `eq?` procedure, the semantics of
 
 Otherwise, `hash` must be a pair of hash functions or a hash function,
 and and `equiv` must be a procedure.  A hash function is a procedure
-that must accept a key as an argument and should return a non-negative
-exact integer object.  `Equiv` should accept two keys as arguments and
-return a single value.  None of the procedures should mutate the
-hashtable returned by `make-hashtable`.  The `make-hashtable`
-procedure returns a newly allocated mutable hashtable using the
-function(s) specified by `hash` as its hash function(s), and `equiv`
-as the equivalence function used to compare keys.  Implementations
-preferring a hashing strategy involving a pair of hash functions may
-automatically derive a pair of hash functions from a given single hash
-function.  The semantics of the remaining arguments are as in
-`make-eq-hashtable` and `make-eqv-hashtable`.
+that must accept a key and a bound as an argument and should return a
+non-negative exact integer object.  (See also the section on hash
+functions.)  `Equiv` should accept two keys as arguments and return a
+single value.  None of the procedures should mutate the hashtable
+returned by `make-hashtable`.  The `make-hashtable` procedure returns
+a newly allocated mutable hashtable using the function(s) specified by
+`hash` as its hash function(s), and `equiv` as the equivalence
+function used to compare keys.  Implementations preferring a hashing
+strategy involving a pair of hash functions may automatically derive a
+pair of hash functions from a given single hash function.  The
+semantics of the remaining arguments are as in `make-eq-hashtable` and
+`make-eqv-hashtable`.
 
 The hash functions and `equiv` should behave like pure functions on
 the domain of keys.  For example, the `string-hash` and `string=?`
@@ -622,7 +628,12 @@ If however the environment variable `SRFI_126_HASH_SEED` is set before
 program startup, then the salt value is derived from the value of this
 environment variable in a deterministic manner.
 
+Every hash function takes an optional `bound` argument which must be
+an exact non-negative integer.  It signifies that the function need
+not return an integer greater than `bound`, although it may do so.
+
 - `(equal-hash obj)` (procedure)
+- `(equal-hash obj bound)`
 
 Returns an integer hash value for `obj`, based on its structure and
 current contents.  This hash function is suitable for use with
@@ -632,18 +643,21 @@ current contents.  This hash function is suitable for use with
 terminate, even if its arguments contain cycles.
 
 - `(string-hash string)` (procedure)
+- `(string-hash string bound)`
 
 Returns an integer hash value for `string`, based on its current
 contents.  This hash function is suitable for use with `string=?` as
 an equivalence function.
 
 - `(string-ci-hash string)` (procedure)
+- `(string-ci-hash string bound)`
 
 Returns an integer hash value for `string` based on its current
 contents, ignoring case.  This hash function is suitable for use with
 `string-ci=?` as an equivalence function.
 
 - `(symbol-hash symbol)` (procedure)
+- `(symbol-hash symbol bound)`
 
 Returns an integer hash value for `symbol`.
 
