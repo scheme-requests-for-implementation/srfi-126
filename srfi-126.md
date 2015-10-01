@@ -790,6 +790,9 @@ overall input in the design of this SRFI.
 Thanks to Mark Weaver for his review of and comments on the SRFI,
 which had substantial effect on the result.
 
+Thanks to Jorgen Schäfer for numerous comments on the SRFI which
+helped in the decision making.
+
 Thanks also to everyone on the discussion mailing list for their
 extensive input that helped shape this SRFI.
 
