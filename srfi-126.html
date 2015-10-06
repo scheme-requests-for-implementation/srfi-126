@@ -31,7 +31,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <h2 id="abstract">Abstract</h2>
 <p>We provide a hashtable API that takes the R6RS hashtables API as a basis and makes backwards compatible additions such as support for weak hashtables, external representation, API support for double hashing implementations, and utility procedures.</p>
 <h2 id="rationale">Rationale</h2>
-<p>This specification provides an alternative to SRFI-125. It builds on the R6RS hashtables API instead of SRFI-69, with backwards compatible additions such as weak and ephemeral hashtables, an external representation, API support for hashing strategies that require a pair of hash functions, and better API support for very large hash tables. Other additions are limited to utility procedures. It does not depend on SRFI-114 (Comparators), and does not attempt to specify thread-safety because typical multi-threaded use-cases will most likely involve locking more than just accesses and mutations of hashtables.</p>
+<p>This specification provides an alternative to SRFI-125. It builds on the R6RS hashtables API instead of SRFI-69, with backwards compatible additions such as weak and ephemeral hashtables, an external representation, API support for hashing strategies that require a pair of hash functions, and better API support for very large hash tables. Some of these additions are optional to support, so as to aid in adoption of the SRFI by smaller Scheme implementations which would otherwise disregard the SRFI entirely. Other additions are limited to utility procedures. It does not depend on SRFI-114 (Comparators), and does not attempt to specify thread-safety because typical multi-threaded use-cases will most likely involve locking more than just accesses and mutations of hashtables.</p>
 <p>The inclusion criteria for utility procedures is that they be</p>
 <ul>
 <li>used frequently in typical user code, or</li>
@@ -58,7 +58,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>An implementation may implement weak-key and weak-value hashtables as ephemeral-key and ephemeral-value hashtables.</p>
 <p><em>Rationale:</em> While the semantics of weak-key and weak-value hashtables is undesired, their implementation might be more efficient than ephemeral-key and ephemeral-value hashtables.</p>
 <p>Ephemeral-key-and-value hashtables use a pair of ephemeral storage pairs for each association: one where the key is the first object and one where the value is. This means that the key and value are protected from reclamation until no references remain to neither the key nor value from outside the hashtable. In contrast, a weak-key-and-value hashtable will delete an association as soon as either the key or value is reclaimed.</p>
-<p>Support for all types of weak and ephemeral hashtables is optional, to aid in adoption of the SRFI by smaller Scheme implementations which would otherwise disregard the SRFI entirely.</p>
+<p>Support for all types of weak and ephemeral hashtables is optional.</p>
 <p>This document uses the <code>hashtable</code> parameter name for arguments that must be hashtables, and the <code>key</code> parameter name for arguments that must be hashtable keys.</p>
 <h3 id="constructors">Constructors</h3>
 <ul>

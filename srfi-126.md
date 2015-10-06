@@ -45,11 +45,13 @@ the R6RS hashtables API instead of SRFI-69, with backwards compatible
 additions such as weak and ephemeral hashtables, an external
 representation, API support for hashing strategies that require a pair
 of hash functions, and better API support for very large hash tables.
-Other additions are limited to utility procedures.  It does not depend
-on SRFI-114 (Comparators), and does not attempt to specify
-thread-safety because typical multi-threaded use-cases will most
-likely involve locking more than just accesses and mutations of
-hashtables.
+Some of these additions are optional to support, so as to aid in
+adoption of the SRFI by smaller Scheme implementations which would
+otherwise disregard the SRFI entirely.  Other additions are limited to
+utility procedures.  It does not depend on SRFI-114 (Comparators), and
+does not attempt to specify thread-safety because typical
+multi-threaded use-cases will most likely involve locking more than
+just accesses and mutations of hashtables.
 
 The inclusion criteria for utility procedures is that they be
 
@@ -163,9 +165,7 @@ key nor value from outside the hashtable.  In contrast, a
 weak-key-and-value hashtable will delete an association as soon as
 either the key or value is reclaimed.
 
-Support for all types of weak and ephemeral hashtables is optional, to
-aid in adoption of the SRFI by smaller Scheme implementations which
-would otherwise disregard the SRFI entirely.
+Support for all types of weak and ephemeral hashtables is optional.
 
 This document uses the `hashtable` parameter name for arguments that
 must be hashtables, and the `key` parameter name for arguments that
