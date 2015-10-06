@@ -73,15 +73,20 @@ in R6RS (which effectively prohibits extensions to its procedures'
 semantics) is ignored.
 
 The R6RS hashtables API is favored over SRFI-69 because the latter
-contains serious flaws.  In particular, exposing the hash functions
-for the `eq?` and `eqv?` procedures is a hindrance for Scheme
-implementations with a moving garbage collector.  SRFI-125 works
-around this by allowing the user-provided hash function passed to
-`make-hash-table` to be ignored by the implementation, and allowing
-the `hash-table-hash-function` procedure to return `#f` instead of the
-hash function passed to `make-hash-table`.  R6RS avoids the issue by
-providing dedicated constructors for `eq?` and `eqv?` based
-hashtables, and returning `#f` when their hash function is queried.
+contains a crucial flaw: exposing the hash functions for the `eq?` and
+`eqv?` procedures is a hindrance for Scheme implementations with a
+moving garbage collector.  SRFI-125 works around this by allowing the
+user-provided hash function passed to `make-hash-table` to be ignored
+by the implementation, and allowing the `hash-table-hash-function`
+procedure to return `#f` instead of the hash function passed to
+`make-hash-table`.  R6RS avoids the issue by providing dedicated
+constructors for `eq?` and `eqv?` based hashtables, and returning `#f`
+when their hash function is queried.
+
+While the SRFI is based on the R6RS hashtables API instead of SRFI-69,
+the provided utility procedures nevertheless make it relatively
+straightforward to change code written for SRFI-69 to use the API
+specified herein.
 
 The utility procedures provided by this SRFI in addition to the R6RS
 API may be categorized as follows:
