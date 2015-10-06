@@ -228,9 +228,12 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(hashtable-merge! hashtable-dest hashtable-source)</code> (procedure)</li>
 </ul>
 <p>Effectively equivalent to:</p>
-<pre><code>(hashtable-walk hashtable-source
-  (lambda (key value)
-    (hashtable-set! hashtable-dest key value)))</code></pre>
+<pre><code>(begin
+  (hashtable-walk hashtable-source
+    (lambda (key value)
+      (hashtable-set! hashtable-dest key value)))
+  hashtable-dest)</code></pre>
+<p><em>Rationale:</em> The return value is specified to be <code>hashtable-dest</code> only for compatibility with the analogous SRFI-69 procedure. This return value should not be relied on in new code. On the other hand, it can be relied upon that <code>hashtable-dest</code> is mutated.</p>
 <ul>
 <li><code>(hashtable-sum hashtable init proc)</code> (procedure)</li>
 </ul>

@@ -504,9 +504,16 @@ counters the human intuition of selecting elements to remove.
 
 Effectively equivalent to:
 
-    (hashtable-walk hashtable-source
-      (lambda (key value)
-        (hashtable-set! hashtable-dest key value)))
+    (begin
+      (hashtable-walk hashtable-source
+        (lambda (key value)
+          (hashtable-set! hashtable-dest key value)))
+      hashtable-dest)
+
+*Rationale:* The return value is specified to be `hashtable-dest` only
+for compatibility with the analogous SRFI-69 procedure.  This return
+value should not be relied on in new code.  On the other hand, it can
+be relied upon that `hashtable-dest` is mutated.
 
 - `(hashtable-sum hashtable init proc)` (procedure)
 
