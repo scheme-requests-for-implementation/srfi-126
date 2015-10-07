@@ -1,3 +1,5 @@
+% R6RS-based hashtables
+
 Author
 ------
 
@@ -31,20 +33,25 @@ Abstract
 
 We provide a hashtable API that takes the R6RS hashtables API as a
 basis and makes backwards compatible additions such as support for
-weak hashtables, external representation, and utility procedures.
+weak hashtables, external representation, API support for double
+hashing implementations, and utility procedures.
 
 
 Rationale
 ---------
 
 This specification provides an alternative to SRFI-125.  It builds on
-the R6RS hashtables API instead of SRFI-69, with only fully backwards
-compatible additions, most notably weak and ephemeral hashtables, and
-external representation.  Other additions are limited to utility
-procedures.  It does not depend on SRFI-114 (Comparators), and does
-not attempt to specify thread-safety because typical multi-threaded
-use-cases will most likely involve locking more than just accesses and
-mutations of hashtables.
+the R6RS hashtables API instead of SRFI-69, with backwards compatible
+additions such as weak and ephemeral hashtables, an external
+representation, API support for hashing strategies that require a pair
+of hash functions, and better API support for very large hash tables.
+Some of these additions are optional to support, so as to aid in
+adoption of the SRFI by smaller Scheme implementations which would
+otherwise disregard the SRFI entirely.  Other additions are limited to
+utility procedures.  It does not depend on SRFI-114 (Comparators), and
+does not attempt to specify thread-safety because typical
+multi-threaded use-cases will most likely involve locking more than
+just accesses and mutations of hashtables.
 
 The inclusion criteria for utility procedures is that they be
 
@@ -52,25 +59,34 @@ The inclusion criteria for utility procedures is that they be
 - nontrivial to define or imitate when needed, or
 - essential for the efficient implementation of further operations.
 
-There is "full" backwards compatibility in the sense that all R6RS
+There is almost full backwards compatibility in that all R6RS
 hashtable operations within a piece of code that execute without
 raising exceptions will continue to execute without raising exceptions
 when the hashtable library in use is changed to an implementation of
-this specification.  On the other hand, R6RS's stark requirement of
-raising an exception when a procedure's use does not exactly
-correspond to the description in R6RS (which effectively prohibits
-extensions to its procedures' semantics) is ignored.
+this specification, with the sole exception of code that uses custom
+hash functions; these hash functions need to be extended to accept a
+second argument, which however they may ignore.
+
+On the other hand, R6RS's stark requirement of raising an exception
+when a procedure's use does not exactly correspond to the description
+in R6RS (which effectively prohibits extensions to its procedures'
+semantics) is ignored.
 
 The R6RS hashtables API is favored over SRFI-69 because the latter
-contains serious flaws.  In particular, exposing the hash functions
-for the `eq?` and `eqv?` procedures is a hindrance for Scheme
-implementations with a moving garbage collector.  SRFI-125 works
-around this by allowing the user-provided hash function passed to
-`make-hash-table` to be ignored by the implementation, and allowing
-the `hash-table-hash-function` procedure to return `#f` instead of the
-hash function passed to `make-hash-table`.  R6RS avoids the issue by
-providing dedicated constructors for `eq?` and `eqv?` based
-hashtables, and returning `#f` when their hash function is queried.
+contains a crucial flaw: exposing the hash functions for the `eq?` and
+`eqv?` procedures is a hindrance for Scheme implementations with a
+moving garbage collector.  SRFI-125 works around this by allowing the
+user-provided hash function passed to `make-hash-table` to be ignored
+by the implementation, and allowing the `hash-table-hash-function`
+procedure to return `#f` instead of the hash function passed to
+`make-hash-table`.  R6RS avoids the issue by providing dedicated
+constructors for `eq?` and `eqv?` based hashtables, and returning `#f`
+when their hash function is queried.
+
+While the SRFI is based on the R6RS hashtables API instead of SRFI-69,
+the provided utility procedures nevertheless make it relatively
+straightforward to change code written for SRFI-69 to use the API
+specified herein.
 
 The utility procedures provided by this SRFI in addition to the R6RS
 API may be categorized as follows:
@@ -89,7 +105,8 @@ API may be categorized as follows:
   `hashtable-prune!`, `hashtable-merge!`, `hashtable-sum`,
   `hashtable-map->lset`, `hashtable-find`
 
-- Miscellaneous: `hashtable-empty?`, `hashtable-pop!`
+- Miscellaneous: `hashtable-empty?`, `hashtable-pop!`,
+  `hashtable-inc!`, `hashtable-dec!`
 
 Additionally, this specification adheres to the R7RS rule of
 specifying a single return value for procedures which don't have
@@ -101,16 +118,16 @@ Specification
 
 The `(srfi 126)` library provides a set of operations on hashtables.
 A hashtable is of a disjoint type that associates keys with values.
-Any object can be used as a key, provided a hash function and a
-suitable equivalence function is available.  A hash function is a
-procedure that maps keys to exact integer objects.  It is the
-programmer's responsibility to ensure that the hash function is
-compatible with the equivalence function, which is a procedure that
-accepts two keys and returns true if they are equivalent and `#f`
-otherwise.  Standard hashtables for arbitrary objects based on the
-`eq?` and `eqv?` predicates (see R7RS section on “Equivalence
-predicates”) are provided.  Also, hash functions for arbitrary
-objects, strings, and symbols are provided.
+Any object can be used as a key, provided a hash function or a pair of
+hash functions, and a suitable equivalence function, are available.  A
+hash function is a procedure that maps keys to exact integer objects.
+It is the programmer's responsibility to ensure that the hash
+functions are compatible with the equivalence function, which is a
+procedure that accepts two keys and returns true if they are
+equivalent and `#f` otherwise.  Standard hashtables for arbitrary
+objects based on the `eq?` and `eqv?` predicates (see R7RS section on
+“Equivalence predicates”) are provided.  Also, hash functions for
+arbitrary objects, strings, and symbols are provided.
 
 Hashtables can store their key, value, or key and value weakly.
 Storing an object weakly means that the storage location of the object
@@ -153,9 +170,7 @@ key nor value from outside the hashtable.  In contrast, a
 weak-key-and-value hashtable will delete an association as soon as
 either the key or value is reclaimed.
 
-Support for all types of weak and ephemeral hashtables is optional, to
-aid in adoption of the SRFI by smaller Scheme implementations which
-would otherwise disregard the SRFI entirely.
+Support for all types of weak and ephemeral hashtables is optional.
 
 This document uses the `hashtable` parameter name for arguments that
 must be hashtables, and the `key` parameter name for arguments that
@@ -199,37 +214,42 @@ Scheme, they are considered eternally alive, because a new instance
 that is `eqv?` to a previously alive instance may be reallocated at
 any point in a program.
 
-- `(make-hashtable hash-function equiv)` (procedure)
-- `(make-hashtable hash-function equiv capacity)`
-- `(make-hashtable hash-function equiv capacity weakness)`
+- `(make-hashtable hash equiv)` (procedure)
+- `(make-hashtable hash equiv capacity)`
+- `(make-hashtable hash equiv capacity weakness)`
 
-If `hash-function` is `#f` and `equiv` is the `eq?` procedure, the
-semantics of `make-eq-hashtable` apply to the rest of the arguments.
-If `hash-function` is `#f` and `equiv` is the `eqv?` procedure, the
-semantics of `make-eqv-hashtable` apply to the rest of the arguments.
+If `hash` is `#f` and `equiv` is the `eq?` procedure, the semantics of
+`make-eq-hashtable` apply to the rest of the arguments.  If `hash` is
+`#f` and `equiv` is the `eqv?` procedure, the semantics of
+`make-eqv-hashtable` apply to the rest of the arguments.
 
-Otherwise, `hash-function` and `equiv` must be procedures.
-`Hash-function` should accept a key as an argument and should return a
-non-negative exact integer object.  `Equiv` should accept two keys as
-arguments and return a single value.  Neither procedure should mutate
-the hashtable returned by `make-hashtable`.  The `make-hashtable`
-procedure returns a newly allocated mutable hashtable using
-`hash-function` as the hash function and `equiv` as the equivalence
-function used to compare keys.  The semantics of the remaining
-arguments are as in `make-eq-hashtable` and `make-eqv-hashtable`.
+Otherwise, `hash` must be a pair of hash functions or a hash function,
+and and `equiv` must be a procedure.  A hash function is a procedure
+that must accept a key and a bound as an argument and should return a
+non-negative exact integer object.  (See also the section on hash
+functions.)  `Equiv` should accept two keys as arguments and return a
+single value.  None of the procedures should mutate the hashtable
+returned by `make-hashtable`.  The `make-hashtable` procedure returns
+a newly allocated mutable hashtable using the function(s) specified by
+`hash` as its hash function(s), and `equiv` as the equivalence
+function used to compare keys.  Implementations preferring a hashing
+strategy involving a pair of hash functions may automatically derive a
+pair of hash functions from a given single hash function.  The
+semantics of the remaining arguments are as in `make-eq-hashtable` and
+`make-eqv-hashtable`.
 
-Both `hash-function` and `equiv` should behave like pure functions on
+The hash functions and `equiv` should behave like pure functions on
 the domain of keys.  For example, the `string-hash` and `string=?`
 procedures are permissible only if all keys are strings and the
 contents of those strings are never changed so long as any of them
 continues to serve as a key in the hashtable.  Furthermore, any pair
 of keys for which `equiv` returns true should be hashed to the same
-exact integer objects by `hash-function`.
+exact integer objects by the given hash function(s).
 
-*Note:* Hashtables are allowed to cache the results of calling the
-hash function and equivalence function, so programs cannot rely on the
-hash function being called for every lookup or update.  Furthermore
-any hashtable operation may call the hash function more than once.
+*Note:* Hashtables are allowed to cache the results of calling a hash
+function and equivalence function, so programs cannot rely on a hash
+function being called for every lookup or update.  Furthermore any
+hashtable operation may call a hash function more than once.
 
 - `(alist->eq-hashtable alist)` (procedure)
 - `(alist->eq-hashtable capacity alist)`
@@ -253,13 +273,13 @@ corresponds to their omission in the call to `make-eq-hashtable`.
 This procedure is equivalent to `alist->eq-hashtable` except that
 `make-eqv-hashtable` is used to construct the hashtable.
 
-- `(alist->hashtable hash-function equiv alist)` (procedure)
-- `(alist->hashtable hash-function equiv capacity alist)`
-- `(alist->hashtable hash-function equiv capacity weakness alist)`
+- `(alist->hashtable hash equiv alist)` (procedure)
+- `(alist->hashtable hash equiv capacity alist)`
+- `(alist->hashtable hash equiv capacity weakness alist)`
 
 This procedure is equivalent to `alist->eq-hashtable` except that
 `make-hashtable` is used to construct the hashtable, with the given
-`hash-function` and `equiv` arguments.
+`hash` and `equiv` arguments.
 
 - `(weakness <weakness symbol>)` (syntax)
 
@@ -333,11 +353,14 @@ Returns `#t` if `obj` is a hashtable, `#f` otherwise.
 Returns the number of keys contained in `hashtable` as an exact
 integer object.
 
-- `(hashtable-ref hashtable key default)` (procedure)
+- `(hashtable-ref hashtable key)` (procedure)
+- `(hashtable-ref hashtable key default)`
 
 Returns the value in `hashtable` associated with `key`.  If
 `hashtable` does not contain an association for `key`, `default` is
-returned.
+returned.  If `hashtable` does not contain an association for `key`
+and the `default` argument is not provided, an error should be
+signaled.
 
 - `(hashtable-set! hashtable key obj)` (procedure)
 
@@ -368,7 +391,7 @@ should not mutate `hashtable`.  The `hashtable-update!` procedure
 applies `proc` to the value in `hashtable` associated with `key`, or
 to `default` if `hashtable` does not contain an association for `key`.
 The hashtable is then changed to associate `key` with the value
-returned by `proc`.
+returned by `proc`, and the value returned by `hashtable-update!`.
 
 - `(hashtable-intern! hashtable key default-proc)` (procedure)
 
@@ -486,9 +509,16 @@ counters the human intuition of selecting elements to remove.
 
 Effectively equivalent to:
 
-    (hashtable-walk hashtable-source
-      (lambda (key value)
-        (hashtable-set! hashtable-dest key value)))
+    (begin
+      (hashtable-walk hashtable-source
+        (lambda (key value)
+          (hashtable-set! hashtable-dest key value)))
+      hashtable-dest)
+
+*Rationale:* The return value is specified to be `hashtable-dest` only
+for compatibility with the analogous SRFI-69 procedure.  This return
+value should not be relied on in new code.  On the other hand, it can
+be relied upon that `hashtable-dest` is mutated.
 
 - `(hashtable-sum hashtable init proc)` (procedure)
 
@@ -544,6 +574,24 @@ Effectively equivalent to:
       (hashtable-delete! hashtable key)
       (values key value))
 
+- `(hashtable-inc! hashtable key)` (procedure)
+- `(hashtable-inc! hashtable key x)`
+
+Effectively equivalent to:
+
+    (hashtable-update! hashtable key (lambda (x) (+ x k)) 0)
+
+where x is 1 when not provided.
+
+- `(hashtable-dec! hashtable key)` (procedure)
+- `(hashtable-dec! hashtable key x)`
+
+Effectively equivalent to:
+
+    (hashtable-update! hashtable key (lambda (x) (- x k)) 0)
+
+where x is 1 when not provided.
+
 
 ### Inspection
 
@@ -555,8 +603,14 @@ For hashtables created with `make-eq-hashtable` and
 
 - `(hashtable-hash-function hashtable)` (procedure)
 
-Returns the hash function used by `hashtable`.  For hashtables created
-by `make-eq-hashtable` or `make-eqv-hashtable`, `#f` is returned.
+Returns the hash function(s) used by `hashtable`, that is, either a
+procedure, or a pair of procedures.  For hashtables created by
+`make-eq-hashtable` or `make-eqv-hashtable`, `#f` is returned.  Note
+that in implementations preferring a hashing strategy involving a pair
+of hash functions, this procedure may not return the same value that
+was used as the `hash` argument to `make-hashtable`.  On the other
+hand, all values returned by this procedure are suitable for the
+`hash` argument of `make-hashtable`.
 
 - `(hashtable-weakness hashtable)` (procedure)
 
@@ -579,7 +633,19 @@ this section are acceptable as the hash functions of a hashtable only
 if the keys on which they are called are not mutated while they remain
 in use as keys in the hashtable.
 
+An implementation may initialize its hash functions with a random salt
+value at program startup, meaning they are not guaranteed to return
+the same values for the same inputs across multiple runs of a program.
+If however the environment variable `SRFI_126_HASH_SEED` is set before
+program startup, then the salt value is derived from the value of this
+environment variable in a deterministic manner.
+
+Every hash function takes an optional `bound` argument which must be
+an exact non-negative integer.  It signifies that the function need
+not return an integer greater than `bound`, although it may do so.
+
 - `(equal-hash obj)` (procedure)
+- `(equal-hash obj bound)`
 
 Returns an integer hash value for `obj`, based on its structure and
 current contents.  This hash function is suitable for use with
@@ -589,20 +655,33 @@ current contents.  This hash function is suitable for use with
 terminate, even if its arguments contain cycles.
 
 - `(string-hash string)` (procedure)
+- `(string-hash string bound)`
 
 Returns an integer hash value for `string`, based on its current
 contents.  This hash function is suitable for use with `string=?` as
 an equivalence function.
 
 - `(string-ci-hash string)` (procedure)
+- `(string-ci-hash string bound)`
 
 Returns an integer hash value for `string` based on its current
 contents, ignoring case.  This hash function is suitable for use with
 `string-ci=?` as an equivalence function.
 
 - `(symbol-hash symbol)` (procedure)
+- `(symbol-hash symbol bound)`
 
 Returns an integer hash value for `symbol`.
+
+- `(make-equal-hash salt)` (procedure)
+- `(make-string-hash salt)` (procedure)
+- `(make-string-ci-hash salt)` (procedure)
+- `(make-symbol-hash salt)` (procedure)
+
+For each of these procedures, `salt` should be an exact non-negative
+integer.  These procedures return procedures analogous to
+`equal-hash`, `string-hash`, `string-ci-hash`, and `symbol-hash`
+respectively, but which use the given `salt` to alter their results.
 
 
 Implementation
@@ -738,8 +817,9 @@ efficient `hashtable-find`:
               (return key value #t))))
         (return #f #f #f)))
 
-The `hashtable-empty?` and `hashtable-pop!` procedures can be
-implemented as seen in their specifications.
+The `hashtable-empty?`, `hashtable-pop!`, `hashtable-inc!`, and
+`hashtable-dec!` procedures can be implemented as seen in their
+specifications.
 
 Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the
@@ -760,6 +840,9 @@ overall input in the design of this SRFI.
 
 Thanks to Mark Weaver for his review of and comments on the SRFI,
 which had substantial effect on the result.
+
+Thanks to Jorgen Schäfer for numerous comments on the SRFI which
+helped in the decision making.
 
 Thanks also to everyone on the discussion mailing list for their
 extensive input that helped shape this SRFI.
