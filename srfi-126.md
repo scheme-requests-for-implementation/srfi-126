@@ -674,16 +674,6 @@ contents, ignoring case.  This hash function is suitable for use with
 
 Returns an integer hash value for `symbol`.
 
-- `(make-equal-hash salt)` (procedure)
-- `(make-string-hash salt)` (procedure)
-- `(make-string-ci-hash salt)` (procedure)
-- `(make-symbol-hash salt)` (procedure)
-
-For each of these procedures, `salt` should be an exact non-negative
-integer.  These procedures return procedures analogous to
-`equal-hash`, `string-hash`, `string-ci-hash`, and `symbol-hash`
-respectively, but which use the given `salt` to alter their results.
-
 
 Implementation
 --------------

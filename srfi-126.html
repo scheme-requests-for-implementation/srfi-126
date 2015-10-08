@@ -321,13 +321,6 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(symbol-hash symbol bound)</code></li>
 </ul>
 <p>Returns an integer hash value for <code>symbol</code>.</p>
-<ul>
-<li><code>(make-equal-hash salt)</code> (procedure)</li>
-<li><code>(make-string-hash salt)</code> (procedure)</li>
-<li><code>(make-string-ci-hash salt)</code> (procedure)</li>
-<li><code>(make-symbol-hash salt)</code> (procedure)</li>
-</ul>
-<p>For each of these procedures, <code>salt</code> should be an exact non-negative integer. These procedures return procedures analogous to <code>equal-hash</code>, <code>string-hash</code>, <code>string-ci-hash</code>, and <code>symbol-hash</code> respectively, but which use the given <code>salt</code> to alter their results.</p>
 <h2 id="implementation">Implementation</h2>
 <p>Larceny Scheme contains a portable implementation of the R6RS hashtables API as an R7RS library. It is included in the version control repository of this SRFI.</p>
 <p>The alist constructors can be implemented trivially as seen in the piece of code describing their semantics. Here is a complete definition of <code>alist-&gt;eq-hashtable</code>:</p>
