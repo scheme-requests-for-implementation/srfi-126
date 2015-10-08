@@ -233,11 +233,14 @@ single value.  None of the procedures should mutate the hashtable
 returned by `make-hashtable`.  The `make-hashtable` procedure returns
 a newly allocated mutable hashtable using the function(s) specified by
 `hash` as its hash function(s), and `equiv` as the equivalence
-function used to compare keys.  Implementations preferring a hashing
-strategy involving a pair of hash functions may automatically derive a
-pair of hash functions from a given single hash function.  The
-semantics of the remaining arguments are as in `make-eq-hashtable` and
-`make-eqv-hashtable`.
+function used to compare keys.  The semantics of the remaining
+arguments are as in `make-eq-hashtable` and `make-eqv-hashtable`.
+
+Implementations using a hashing strategy that involves a single hash
+function should ignore one of the functions in the pair when given a
+pair of hash functions.  Implementations preferring a hashing strategy
+involving a pair of hash functions may automatically derive a pair of
+hash functions from a given single hash function.
 
 The hash functions and `equiv` should behave like pure functions on
 the domain of keys.  For example, the `string-hash` and `string=?`
@@ -606,12 +609,16 @@ For hashtables created with `make-eq-hashtable` and
 
 Returns the hash function(s) used by `hashtable`, that is, either a
 procedure, or a pair of procedures.  For hashtables created by
-`make-eq-hashtable` or `make-eqv-hashtable`, `#f` is returned.  Note
-that in implementations preferring a hashing strategy involving a pair
-of hash functions, this procedure may not return the same value that
-was used as the `hash` argument to `make-hashtable`.  On the other
-hand, all values returned by this procedure are suitable for the
-`hash` argument of `make-hashtable`.
+`make-eq-hashtable` or `make-eqv-hashtable`, `#f` is returned.
+
+*Note:* Implementations using a hashing strategy that involves a
+single hash function may return a single procedure even when a pair of
+procedures was passed to `make-hashtable`.  Implementations preferring
+a hashing strategy involving a pair of hash functions may return a
+pair of procedures even when a single procedure was passed to
+`make-hashtable`.  In any case, all values returned by this procedure
+are suitable for the `hash` argument of `make-hashtable` and must
+return in a hashtable with equivalent hashing behavior.
 
 - `(hashtable-weakness hashtable)` (procedure)
 
