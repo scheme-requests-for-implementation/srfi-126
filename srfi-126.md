@@ -644,9 +644,9 @@ in use as keys in the hashtable.
 An implementation may initialize its hash functions with a random salt
 value at program startup, meaning they are not guaranteed to return
 the same values for the same inputs across multiple runs of a program.
-If however the environment variable `SRFI_126_HASH_SEED` is set before
-program startup, then the salt value is derived from the value of this
-environment variable in a deterministic manner.
+If however the environment variable `SRFI_126_HASH_SEED` is set to a
+non-empty string before program startup, then the salt value is
+derived from that string in a deterministic manner.
 
 Every hash function takes an optional `bound` argument which must be
 an exact non-negative integer.  It signifies that the function need
