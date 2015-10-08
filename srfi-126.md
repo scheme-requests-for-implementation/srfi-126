@@ -579,22 +579,22 @@ Effectively equivalent to:
       (values key value))
 
 - `(hashtable-inc! hashtable key)` (procedure)
-- `(hashtable-inc! hashtable key x)`
+- `(hashtable-inc! hashtable key number)`
 
 Effectively equivalent to:
 
-    (hashtable-update! hashtable key (lambda (x) (+ x k)) 0)
+    (hashtable-update! hashtable key (lambda (v) (+ v number)) 0)
 
-where x is 1 when not provided.
+where `number` is 1 when not provided.
 
 - `(hashtable-dec! hashtable key)` (procedure)
-- `(hashtable-dec! hashtable key x)`
+- `(hashtable-dec! hashtable key number)`
 
 Effectively equivalent to:
 
-    (hashtable-update! hashtable key (lambda (x) (- x k)) 0)
+    (hashtable-update! hashtable key (lambda (v) (- v number)) 0)
 
-where x is 1 when not provided.
+where `number` is 1 when not provided.
 
 
 ### Inspection

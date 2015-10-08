@@ -268,18 +268,18 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
   (values key value))</code></pre>
 <ul>
 <li><code>(hashtable-inc! hashtable key)</code> (procedure)</li>
-<li><code>(hashtable-inc! hashtable key x)</code></li>
+<li><code>(hashtable-inc! hashtable key number)</code></li>
 </ul>
 <p>Effectively equivalent to:</p>
-<pre><code>(hashtable-update! hashtable key (lambda (x) (+ x k)) 0)</code></pre>
-<p>where x is 1 when not provided.</p>
+<pre><code>(hashtable-update! hashtable key (lambda (v) (+ v number)) 0)</code></pre>
+<p>where <code>number</code> is 1 when not provided.</p>
 <ul>
 <li><code>(hashtable-dec! hashtable key)</code> (procedure)</li>
-<li><code>(hashtable-dec! hashtable key x)</code></li>
+<li><code>(hashtable-dec! hashtable key number)</code></li>
 </ul>
 <p>Effectively equivalent to:</p>
-<pre><code>(hashtable-update! hashtable key (lambda (x) (- x k)) 0)</code></pre>
-<p>where x is 1 when not provided.</p>
+<pre><code>(hashtable-update! hashtable key (lambda (v) (- v number)) 0)</code></pre>
+<p>where <code>number</code> is 1 when not provided.</p>
 <h3 id="inspection">Inspection</h3>
 <ul>
 <li><code>(hashtable-equivalence-function hashtable)</code> (procedure)</li>
