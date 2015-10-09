@@ -423,7 +423,7 @@ value.  If `capacity` is provided and not `#f`, it must be an exact
 non-negative integer and the current capacity of the hashtable is
 reset to approximately `capacity` elements.
 
-- `(hashtable-empty-copy hashtable)`
+- `(hashtable-empty-copy hashtable)` (procedure)
 - `(hashtable-empty-copy hashtable capacity)`
 
 Returns a newly allocated mutable hashtable that has the same hash and
@@ -561,7 +561,7 @@ exhausted.  Three values are returned: the key and value of the
 matching association or two unspecified values if none matched, and a
 Boolean indicating whether any association matched.
 
-- `(hashtable-empty? hashtable)`
+- `(hashtable-empty? hashtable)` (procedure)
 
 Effectively equivalent to:
 
