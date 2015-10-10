@@ -83,7 +83,8 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(make-hashtable hash equiv capacity weakness)</code></li>
 </ul>
 <p>If <code>hash</code> is <code>#f</code> and <code>equiv</code> is the <code>eq?</code> procedure, the semantics of <code>make-eq-hashtable</code> apply to the rest of the arguments. If <code>hash</code> is <code>#f</code> and <code>equiv</code> is the <code>eqv?</code> procedure, the semantics of <code>make-eqv-hashtable</code> apply to the rest of the arguments.</p>
-<p>Otherwise, <code>hash</code> must be a pair of hash functions or a hash function, and and <code>equiv</code> must be a procedure. A hash function is a procedure that must accept a key and a bound as an argument and should return a non-negative exact integer object. (See also the section on hash functions.) <code>Equiv</code> should accept two keys as arguments and return a single value. None of the procedures should mutate the hashtable returned by <code>make-hashtable</code>. The <code>make-hashtable</code> procedure returns a newly allocated mutable hashtable using the function(s) specified by <code>hash</code> as its hash function(s), and <code>equiv</code> as the equivalence function used to compare keys. Implementations preferring a hashing strategy involving a pair of hash functions may automatically derive a pair of hash functions from a given single hash function. The semantics of the remaining arguments are as in <code>make-eq-hashtable</code> and <code>make-eqv-hashtable</code>.</p>
+<p>Otherwise, <code>hash</code> must be a pair of hash functions or a hash function, and and <code>equiv</code> must be a procedure. A hash function is a procedure that must accept a key and a bound as an argument and should return a non-negative exact integer object. (See also the section on hash functions.) <code>Equiv</code> should accept two keys as arguments and return a single value. None of the procedures should mutate the hashtable returned by <code>make-hashtable</code>. The <code>make-hashtable</code> procedure returns a newly allocated mutable hashtable using the function(s) specified by <code>hash</code> as its hash function(s), and <code>equiv</code> as the equivalence function used to compare keys. The semantics of the remaining arguments are as in <code>make-eq-hashtable</code> and <code>make-eqv-hashtable</code>.</p>
+<p>Implementations using a hashing strategy that involves a single hash function should ignore one of the functions in the pair when given a pair of hash functions. Implementations preferring a hashing strategy involving a pair of hash functions may automatically derive a pair of hash functions from a given single hash function.</p>
 <p>The hash functions and <code>equiv</code> should behave like pure functions on the domain of keys. For example, the <code>string-hash</code> and <code>string=?</code> procedures are permissible only if all keys are strings and the contents of those strings are never changed so long as any of them continues to serve as a key in the hashtable. Furthermore, any pair of keys for which <code>equiv</code> returns true should be hashed to the same exact integer objects by the given hash function(s).</p>
 <p><em>Note:</em> Hashtables are allowed to cache the results of calling a hash function and equivalence function, so programs cannot rely on a hash function being called for every lookup or update. Furthermore any hashtable operation may call a hash function more than once.</p>
 <ul>
@@ -183,7 +184,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p>Removes all associations from <code>hashtable</code> and returns an unspecified value. If <code>capacity</code> is provided and not <code>#f</code>, it must be an exact non-negative integer and the current capacity of the hashtable is reset to approximately <code>capacity</code> elements.</p>
 <ul>
-<li><code>(hashtable-empty-copy hashtable)</code></li>
+<li><code>(hashtable-empty-copy hashtable)</code> (procedure)</li>
 <li><code>(hashtable-empty-copy hashtable capacity)</code></li>
 </ul>
 <p>Returns a newly allocated mutable hashtable that has the same hash and equivalence functions and weakness attribute as <code>hashtable</code>. The <code>capacity</code> argument may be <code>#t</code> to set the initial capacity of the copy to approximately <code>(hashtable-size hashtable)</code> elements; otherwise the semantics of <code>make-eq-hashtable</code> apply to the <code>capacity</code> argument.</p>
@@ -251,7 +252,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p><code>Proc</code> should accept two arguments, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-find</code> procedure applies <code>proc</code> to associations in <code>hashtable</code> in an unspecified order until one of the applications returns a true value or the associations are exhausted. Three values are returned: the key and value of the matching association or two unspecified values if none matched, and a Boolean indicating whether any association matched.</p>
 <ul>
-<li><code>(hashtable-empty? hashtable)</code></li>
+<li><code>(hashtable-empty? hashtable)</code> (procedure)</li>
 </ul>
 <p>Effectively equivalent to:</p>
 <pre><code>(zero? (hashtable-size hashtable))</code></pre>
@@ -267,18 +268,18 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
   (values key value))</code></pre>
 <ul>
 <li><code>(hashtable-inc! hashtable key)</code> (procedure)</li>
-<li><code>(hashtable-inc! hashtable key x)</code></li>
+<li><code>(hashtable-inc! hashtable key number)</code></li>
 </ul>
 <p>Effectively equivalent to:</p>
-<pre><code>(hashtable-update! hashtable key (lambda (x) (+ x k)) 0)</code></pre>
-<p>where x is 1 when not provided.</p>
+<pre><code>(hashtable-update! hashtable key (lambda (v) (+ v number)) 0)</code></pre>
+<p>where <code>number</code> is 1 when not provided.</p>
 <ul>
 <li><code>(hashtable-dec! hashtable key)</code> (procedure)</li>
-<li><code>(hashtable-dec! hashtable key x)</code></li>
+<li><code>(hashtable-dec! hashtable key number)</code></li>
 </ul>
 <p>Effectively equivalent to:</p>
-<pre><code>(hashtable-update! hashtable key (lambda (x) (- x k)) 0)</code></pre>
-<p>where x is 1 when not provided.</p>
+<pre><code>(hashtable-update! hashtable key (lambda (v) (- v number)) 0)</code></pre>
+<p>where <code>number</code> is 1 when not provided.</p>
 <h3 id="inspection">Inspection</h3>
 <ul>
 <li><code>(hashtable-equivalence-function hashtable)</code> (procedure)</li>
@@ -287,7 +288,8 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <ul>
 <li><code>(hashtable-hash-function hashtable)</code> (procedure)</li>
 </ul>
-<p>Returns the hash function(s) used by <code>hashtable</code>, that is, either a procedure, or a pair of procedures. For hashtables created by <code>make-eq-hashtable</code> or <code>make-eqv-hashtable</code>, <code>#f</code> is returned. Note that in implementations preferring a hashing strategy involving a pair of hash functions, this procedure may not return the same value that was used as the <code>hash</code> argument to <code>make-hashtable</code>. On the other hand, all values returned by this procedure are suitable for the <code>hash</code> argument of <code>make-hashtable</code>.</p>
+<p>Returns the hash function(s) used by <code>hashtable</code>, that is, either a procedure, or a pair of procedures. For hashtables created by <code>make-eq-hashtable</code> or <code>make-eqv-hashtable</code>, <code>#f</code> is returned.</p>
+<p><em>Note:</em> Implementations using a hashing strategy that involves a single hash function may return a single procedure even when a pair of procedures was passed to <code>make-hashtable</code>. Implementations preferring a hashing strategy involving a pair of hash functions may return a pair of procedures even when a single procedure was passed to <code>make-hashtable</code>. In any case, all values returned by this procedure are suitable for the <code>hash</code> argument of <code>make-hashtable</code> and must return in a hashtable with equivalent hashing behavior.</p>
 <ul>
 <li><code>(hashtable-weakness hashtable)</code> (procedure)</li>
 </ul>
@@ -298,7 +300,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>Returns <code>#t</code> if <code>hashtable</code> is mutable, otherwise <code>#f</code>.</p>
 <h3 id="hash-functions">Hash functions</h3>
 <p>The <code>equal-hash</code>, <code>string-hash</code>, and <code>string-ci-hash</code> procedures of this section are acceptable as the hash functions of a hashtable only if the keys on which they are called are not mutated while they remain in use as keys in the hashtable.</p>
-<p>An implementation may initialize its hash functions with a random salt value at program startup, meaning they are not guaranteed to return the same values for the same inputs across multiple runs of a program. If however the environment variable <code>SRFI_126_HASH_SEED</code> is set before program startup, then the salt value is derived from the value of this environment variable in a deterministic manner.</p>
+<p>An implementation may initialize its hash functions with a random salt value at program startup, meaning they are not guaranteed to return the same values for the same inputs across multiple runs of a program. If however the environment variable <code>SRFI_126_HASH_SEED</code> is set to a non-empty string before program startup, then the salt value is derived from that string in a deterministic manner.</p>
 <p>Every hash function takes an optional <code>bound</code> argument which must be an exact non-negative integer. It signifies that the function need not return an integer greater than <code>bound</code>, although it may do so.</p>
 <ul>
 <li><code>(equal-hash obj)</code> (procedure)</li>
@@ -321,13 +323,6 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(symbol-hash symbol bound)</code></li>
 </ul>
 <p>Returns an integer hash value for <code>symbol</code>.</p>
-<ul>
-<li><code>(make-equal-hash salt)</code> (procedure)</li>
-<li><code>(make-string-hash salt)</code> (procedure)</li>
-<li><code>(make-string-ci-hash salt)</code> (procedure)</li>
-<li><code>(make-symbol-hash salt)</code> (procedure)</li>
-</ul>
-<p>For each of these procedures, <code>salt</code> should be an exact non-negative integer. These procedures return procedures analogous to <code>equal-hash</code>, <code>string-hash</code>, <code>string-ci-hash</code>, and <code>symbol-hash</code> respectively, but which use the given <code>salt</code> to alter their results.</p>
 <h2 id="implementation">Implementation</h2>
 <p>Larceny Scheme contains a portable implementation of the R6RS hashtables API as an R7RS library. It is included in the version control repository of this SRFI.</p>
 <p>The alist constructors can be implemented trivially as seen in the piece of code describing their semantics. Here is a complete definition of <code>alist-&gt;eq-hashtable</code>:</p>
