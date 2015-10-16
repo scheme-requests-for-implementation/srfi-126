@@ -653,6 +653,13 @@ Every hash function takes an optional `bound` argument which must be
 an exact non-negative integer.  It signifies that the function need
 not return an integer greater than `bound`, although it may do so.
 
+- `(hash-salt)` (procedure)
+
+Returns a global and constant salt value for use in hash functions.
+This is a random value for every run of the program, except when the
+environment variable `SRFI_126_HASH_SEED` is set to a non-empty string
+before program startup.
+
 - `(equal-hash obj)` (procedure)
 - `(equal-hash obj bound)`
 

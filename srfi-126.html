@@ -304,6 +304,10 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>An implementation may initialize its hash functions with a random salt value at program startup, meaning they are not guaranteed to return the same values for the same inputs across multiple runs of a program. If however the environment variable <code>SRFI_126_HASH_SEED</code> is set to a non-empty string before program startup, then the salt value is derived from that string in a deterministic manner.</p>
 <p>Every hash function takes an optional <code>bound</code> argument which must be an exact non-negative integer. It signifies that the function need not return an integer greater than <code>bound</code>, although it may do so.</p>
 <ul>
+<li><code>(hash-salt)</code> (procedure)</li>
+</ul>
+<p>Returns a global and constant salt value for use in hash functions. This is a random value for every run of the program, except when the environment variable <code>SRFI_126_HASH_SEED</code> is set to a non-empty string before program startup.</p>
+<ul>
 <li><code>(equal-hash obj)</code> (procedure)</li>
 <li><code>(equal-hash obj bound)</code></li>
 </ul>
