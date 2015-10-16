@@ -181,7 +181,7 @@ must be hashtable keys.
 
 ### Constructors
 
-- `(make-eq-hashtable)` (procedure)
+- `(make-eq-hashtable)` *procedure*
 - `(make-eq-hashtable capacity)`
 - `(make-eq-hashtable capacity weakness)`
 
@@ -198,7 +198,7 @@ than `#f` are optional to support; the implementation should signal
 the user in an implementation-defined manner when an unsupported value
 is used.
 
-- `(make-eqv-hashtable)` (procedure)
+- `(make-eqv-hashtable)` *procedure*
 - `(make-eqv-hashtable capacity)`
 - `(make-eqv-hashtable capacity weakness)`
 
@@ -216,7 +216,7 @@ Scheme, they are considered eternally alive, because a new instance
 that is `eqv?` to a previously alive instance may be reallocated at
 any point in a program.
 
-- `(make-hashtable hash equiv)` (procedure)
+- `(make-hashtable hash equiv)` *procedure*
 - `(make-hashtable hash equiv capacity)`
 - `(make-hashtable hash equiv capacity weakness)`
 
@@ -256,7 +256,7 @@ function and equivalence function, so programs cannot rely on a hash
 function being called for every lookup or update.  Furthermore any
 hashtable operation may call a hash function more than once.
 
-- `(alist->eq-hashtable alist)` (procedure)
+- `(alist->eq-hashtable alist)` *procedure*
 - `(alist->eq-hashtable capacity alist)`
 - `(alist->eq-hashtable capacity weakness alist)`
 
@@ -271,14 +271,14 @@ The semantics of this procedure can be described as:
 where omission of the `capacity` and/or `weakness` arguments
 corresponds to their omission in the call to `make-eq-hashtable`.
 
-- `(alist->eqv-hashtable alist)` (procedure)
+- `(alist->eqv-hashtable alist)` *procedure*
 - `(alist->eqv-hashtable capacity alist)`
 - `(alist->eqv-hashtable capacity weakness alist)`
 
 This procedure is equivalent to `alist->eq-hashtable` except that
 `make-eqv-hashtable` is used to construct the hashtable.
 
-- `(alist->hashtable hash equiv alist)` (procedure)
+- `(alist->hashtable hash equiv alist)` *procedure*
 - `(alist->hashtable hash equiv capacity alist)`
 - `(alist->hashtable hash equiv capacity weakness alist)`
 
@@ -286,7 +286,7 @@ This procedure is equivalent to `alist->eq-hashtable` except that
 `make-hashtable` is used to construct the hashtable, with the given
 `hash` and `equiv` arguments.
 
-- `(weakness <weakness symbol>)` (syntax)
+- `(weakness <weakness symbol>)` *syntax*
 
 The `<weakness symbol>` must correspond to one of the non-`#f` values
 accepted for the `weakness` argument of the constructor procedures.
@@ -349,16 +349,16 @@ quasiquote algorithm to the key and value.
 
 ### Procedures
 
-- `(hashtable? obj)` (procedure)
+- `(hashtable? obj)` *procedure*
 
 Returns `#t` if `obj` is a hashtable, `#f` otherwise.
 
-- `(hashtable-size hashtable)` (procedure)
+- `(hashtable-size hashtable)` *procedure*
 
 Returns the number of keys contained in `hashtable` as an exact
 integer object.
 
-- `(hashtable-ref hashtable key)` (procedure)
+- `(hashtable-ref hashtable key)` *procedure*
 - `(hashtable-ref hashtable key default)`
 
 Returns the value in `hashtable` associated with `key`.  If
@@ -367,29 +367,29 @@ returned.  If `hashtable` does not contain an association for `key`
 and the `default` argument is not provided, an error should be
 signaled.
 
-- `(hashtable-set! hashtable key obj)` (procedure)
+- `(hashtable-set! hashtable key obj)` *procedure*
 
 Changes `hashtable` to associate `key` with `obj`, adding a new
 association or replacing any existing association for `key`, and
 returns an unspecified value.
 
-- `(hashtable-delete! hashtable key)` (procedure)
+- `(hashtable-delete! hashtable key)` *procedure*
 
 Removes any association for `key` within `hashtable` and returns
 an unspecified value.
 
-- `(hashtable-contains? hashtable key)` (procedure)
+- `(hashtable-contains? hashtable key)` *procedure*
 
 Returns `#t` if `hashtable` contains an association for `key`, `#f`
 otherwise.
 
-- `(hashtable-lookup hashtable key)` (procedure)
+- `(hashtable-lookup hashtable key)` *procedure*
 
 Returns two values: the value in `hashtable` associated with `key` or
 an unspecified value if there is none, and a Boolean indicating
 whether an association was found.
 
-- `(hashtable-update! hashtable key proc default)` (procedure)
+- `(hashtable-update! hashtable key proc default)` *procedure*
 
 `Proc` should accept one argument, should return a single value, and
 should not mutate `hashtable`.  The `hashtable-update!` procedure
@@ -398,7 +398,7 @@ to `default` if `hashtable` does not contain an association for `key`.
 The hashtable is then changed to associate `key` with the value
 returned by `proc`, and the value returned by `hashtable-update!`.
 
-- `(hashtable-intern! hashtable key default-proc)` (procedure)
+- `(hashtable-intern! hashtable key default-proc)` *procedure*
 
 `Default-proc` should accept zero arguments, should return a single
 value, and should not mutate `hashtable`.  The `hashtable-intern!`
@@ -406,7 +406,7 @@ procedure returns the association for `key` in `hashtable` if there is
 one, otherwise it calls `default-proc` with zero arguments, associates
 its return value with `key` in `hashtable`, and returns that value.
 
-- `(hashtable-copy hashtable)` (procedure)
+- `(hashtable-copy hashtable)` *procedure*
 - `(hashtable-copy hashtable mutable)`
 - `(hashtable-copy hashtable mutable weakness)`
 
@@ -416,7 +416,7 @@ immutable.  If the optional `weakness` argument is provided, it
 determines the weakness of the copy, otherwise the weakness attribute
 of `hashtable` is used.
 
-- `(hashtable-clear! hashtable)` (procedure)
+- `(hashtable-clear! hashtable)` *procedure*
 - `(hashtable-clear! hashtable capacity)`
 
 Removes all associations from `hashtable` and returns an unspecified
@@ -424,7 +424,7 @@ value.  If `capacity` is provided and not `#f`, it must be an exact
 non-negative integer and the current capacity of the hashtable is
 reset to approximately `capacity` elements.
 
-- `(hashtable-empty-copy hashtable)` (procedure)
+- `(hashtable-empty-copy hashtable)` *procedure*
 - `(hashtable-empty-copy hashtable capacity)`
 
 Returns a newly allocated mutable hashtable that has the same hash and
@@ -433,18 +433,18 @@ equivalence functions and weakness attribute as `hashtable`.  The
 copy to approximately `(hashtable-size hashtable)` elements; otherwise
 the semantics of `make-eq-hashtable` apply to the `capacity` argument.
 
-- `(hashtable-keys hashtable)` (procedure)
+- `(hashtable-keys hashtable)` *procedure*
 
 Returns a vector of all keys in `hashtable`.  The order of the vector
 is unspecified.
 
-- `(hashtable-values hashtable)` (procedure)
+- `(hashtable-values hashtable)` *procedure*
 
 Returns a vector of all values in `hashtable`.  The order of the
 vector is unspecified, and is not guaranteed to match the order of
 keys in the result of `hashtable-keys`.
 
-- `(hashtable-entries hashtable)` (procedure)
+- `(hashtable-entries hashtable)` *procedure*
 
 Returns two values, a vector of the keys in `hashtable`, and a vector
 of the corresponding values.
@@ -453,18 +453,18 @@ of the corresponding values.
 greater locality and less allocation than if they were returned as
 lists.
 
-- `(hashtable-key-list hashtable)` (procedure)
+- `(hashtable-key-list hashtable)` *procedure*
 
 Returns a list of all keys in `hashtable`.  The order of the list is
 unspecified.
 
-- `(hashtable-value-list hashtable)` (procedure)
+- `(hashtable-value-list hashtable)` *procedure*
 
 Returns a list of all values in `hashtable`.  The order of the list is
 unspecified, and is not guaranteed to match the order of keys in the
 result of `hashtable-key-list`.
 
-- `(hashtable-entry-lists hashtable)` (procedure)
+- `(hashtable-entry-lists hashtable)` *procedure*
 
 Returns two values, a list of the keys in `hashtable`, and a list of
 the corresponding values.
@@ -475,7 +475,7 @@ the results.  Additionally, these operations may be implemented more
 efficiently than their straightforward imitations using their
 vector-returning counterparts and `vector->list`.
 
-- `(hashtable-walk hashtable proc)` (procedure)
+- `(hashtable-walk hashtable proc)` *procedure*
 
 `Proc` should accept two arguments, and should not mutate `hashtable`.
 The `hashtable-walk` procedure applies `proc` once for every
@@ -484,7 +484,7 @@ The order in which `proc` is applied to the associations is
 unspecified.  Return values of `proc` are ignored.
 `Hashtable-walk` returns an unspecified value.
 
-- `(hashtable-update-all! hashtable proc)` (procedure)
+- `(hashtable-update-all! hashtable proc)` *procedure*
 
 `Proc` should accept two arguments, should return a single value, and
 should not mutate `hashtable`.  The `hashtable-update-all!` procedure
@@ -494,7 +494,7 @@ association to the return value of `proc`.  The order in which `proc`
 is applied to the associations is unspecified.
 `Hashtable-update-all!` returns an unspecified value.
 
-- `(hashtable-prune! hashtable proc)` (procedure)
+- `(hashtable-prune! hashtable proc)` *procedure*
 
 `Proc` should accept two arguments, should return a single value, and
 should not mutate `hashtable`.  The `hashtable-prune!` procedure
@@ -510,7 +510,7 @@ with "delete," and because the semantics of a mutative filtering
 operation, which is to select elements to keep and remove the rest,
 counters the human intuition of selecting elements to remove.
 
-- `(hashtable-merge! hashtable-dest hashtable-source)` (procedure)
+- `(hashtable-merge! hashtable-dest hashtable-source)` *procedure*
 
 Effectively equivalent to:
 
@@ -525,7 +525,7 @@ for compatibility with the analogous SRFI-69 procedure.  This return
 value should not be relied on in new code.  On the other hand, it can
 be relied upon that `hashtable-dest` is mutated.
 
-- `(hashtable-sum hashtable init proc)` (procedure)
+- `(hashtable-sum hashtable init proc)` *procedure*
 
 `Proc` should accept three arguments, should return a single value,
 and should not mutate `hashtable`.  The `hashtable-sum` procedure
@@ -535,7 +535,7 @@ result of the previous application or `init` at the first application.
 The order in which `proc` is applied to the associations is
 unspecified.
 
-- `(hashtable-map->lset hashtable proc)` (procedure)
+- `(hashtable-map->lset hashtable proc)` *procedure*
 
 `Proc` should accept two arguments, should return a single value, and
 should not mutate `hashtable`.  The `hashtable-map->lset` procedure
@@ -552,7 +552,7 @@ unspecified.
 list should be treated as a set or multiset.  Relying on the order of
 results will produce unpredictable programs.
 
-- `(hashtable-find hashtable proc)` (procedure)
+- `(hashtable-find hashtable proc)` *procedure*
 
 `Proc` should accept two arguments, should return a single value, and
 should not mutate `hashtable`.  The `hashtable-find` procedure applies
@@ -562,13 +562,13 @@ exhausted.  Three values are returned: the key and value of the
 matching association or two unspecified values if none matched, and a
 Boolean indicating whether any association matched.
 
-- `(hashtable-empty? hashtable)` (procedure)
+- `(hashtable-empty? hashtable)` *procedure*
 
 Effectively equivalent to:
 
     (zero? (hashtable-size hashtable))
 
-- `(hashtable-pop! hashtable)` (procedure)
+- `(hashtable-pop! hashtable)` *procedure*
 
 Effectively equivalent to:
 
@@ -579,7 +579,7 @@ Effectively equivalent to:
       (hashtable-delete! hashtable key)
       (values key value))
 
-- `(hashtable-inc! hashtable key)` (procedure)
+- `(hashtable-inc! hashtable key)` *procedure*
 - `(hashtable-inc! hashtable key number)`
 
 Effectively equivalent to:
@@ -588,7 +588,7 @@ Effectively equivalent to:
 
 where `number` is 1 when not provided.
 
-- `(hashtable-dec! hashtable key)` (procedure)
+- `(hashtable-dec! hashtable key)` *procedure*
 - `(hashtable-dec! hashtable key number)`
 
 Effectively equivalent to:
@@ -600,13 +600,13 @@ where `number` is 1 when not provided.
 
 ### Inspection
 
-- `(hashtable-equivalence-function hashtable)` (procedure)
+- `(hashtable-equivalence-function hashtable)` *procedure*
 
 Returns the equivalence function used by `hashtable` to compare keys.
 For hashtables created with `make-eq-hashtable` and
 `make-eqv-hashtable`, returns `eq?` and `eqv?` respectively.
 
-- `(hashtable-hash-function hashtable)` (procedure)
+- `(hashtable-hash-function hashtable)` *procedure*
 
 Returns the hash function(s) used by `hashtable`, that is, either a
 procedure, or a pair of procedures.  For hashtables created by
@@ -621,7 +621,7 @@ pair of procedures even when a single procedure was passed to
 are suitable for the `hash` argument of `make-hashtable` and must
 return in a hashtable with equivalent hashing behavior.
 
-- `(hashtable-weakness hashtable)` (procedure)
+- `(hashtable-weakness hashtable)` *procedure*
 
 Returns the weakness attribute of `hashtable`.  The same values that
 are accepted as the `weakness` argument in the constructor procedures
@@ -630,7 +630,7 @@ weak-value hashtables are implemented as ephemeral-key and
 ephemeral-value hashtables, returning symbols indicating the latter
 even when the former were used to construct the hashtable.
 
-- `(hashtable-mutable? hashtable)` (procedure)
+- `(hashtable-mutable? hashtable)` *procedure*
 
 Returns `#t` if `hashtable` is mutable, otherwise `#f`.
 
@@ -653,14 +653,14 @@ Every hash function takes an optional `bound` argument which must be
 an exact non-negative integer.  It signifies that the function need
 not return an integer greater than `bound`, although it may do so.
 
-- `(hash-salt)` (procedure)
+- `(hash-salt)` *procedure*
 
 Returns a global and constant salt value for use in hash functions.
 This is a random value for every run of the program, except when the
 environment variable `SRFI_126_HASH_SEED` is set to a non-empty string
 before program startup.
 
-- `(equal-hash obj)` (procedure)
+- `(equal-hash obj)` *procedure*
 - `(equal-hash obj bound)`
 
 Returns an integer hash value for `obj`, based on its structure and
@@ -670,21 +670,21 @@ current contents.  This hash function is suitable for use with
 *Note:* Like `equal?`, the `equal-hash` procedure must always
 terminate, even if its arguments contain cycles.
 
-- `(string-hash string)` (procedure)
+- `(string-hash string)` *procedure*
 - `(string-hash string bound)`
 
 Returns an integer hash value for `string`, based on its current
 contents.  This hash function is suitable for use with `string=?` as
 an equivalence function.
 
-- `(string-ci-hash string)` (procedure)
+- `(string-ci-hash string)` *procedure*
 - `(string-ci-hash string bound)`
 
 Returns an integer hash value for `string` based on its current
 contents, ignoring case.  This hash function is suitable for use with
 `string-ci=?` as an equivalence function.
 
-- `(symbol-hash symbol)` (procedure)
+- `(symbol-hash symbol)` *procedure*
 - `(symbol-hash symbol bound)`
 
 Returns an integer hash value for `symbol`.
