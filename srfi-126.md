@@ -822,6 +822,15 @@ See MIT/GNU Scheme for an example.
 External representation cannot be implemented by portable library
 code.
 
+A sample implementation for GNU Guile is found within the source
+control repository of this SRFI.  It represents hash tables as an
+SRFI-9 record for simplicity (using an opaque R6RS record type would
+have fulfilled the requirement of the hashtable type being disjoint),
+installs external representation support into the Guile runtime when
+the library is loaded (without `quasiquote` integration), and supports
+all types of weakness which Guile has native support for.  This is
+achieved in approximately 350 lines of library code.
+
 
 Acknowledgments
 ---------------
