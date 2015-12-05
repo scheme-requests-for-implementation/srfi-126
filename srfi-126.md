@@ -182,6 +182,16 @@ instance allocated freshly.  Therefore objects of these types must be
 considered alive at all times even if no references remain to them in
 a program.
 
+*Warning:* In portable code, one may neither rely on weak hashtables
+keeping associations for objects of these types at absence of other
+references to the object, nor may one rely on the hashtable
+automatically clearing associations for objects of these types.
+Furthermore, the exact types of objects to which this caveat applies
+differs between implementations.  For instance, some implementations
+may automatically clear associations only for big exact integers and
+exact rationals, whereas other implementations may also do so for all
+inexact numbers.
+
 This document uses the `hashtable` parameter name for arguments that
 must be hashtables, and the `key` parameter name for arguments that
 must be hashtable keys.

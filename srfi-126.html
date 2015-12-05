@@ -64,6 +64,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>Support for all types of weak and ephemeral hashtables is optional.</p>
 <p>Booleans, characters, numbers, symbols, and the empty list are recommended, but not required, to never be stored weakly or ephemerally.</p>
 <p><em>Rationale:</em> Objects of these types can be recreated arbitrarily, such that a new instance is equivalent (as per <code>eqv?</code>) to a previous instance, even if the previous instance was deallocated and the new instance allocated freshly. Therefore objects of these types must be considered alive at all times even if no references remain to them in a program.</p>
+<p><em>Warning:</em> In portable code, one may neither rely on weak hashtables keeping associations for objects of these types at absence of other references to the object, nor may one rely on the hashtable automatically clearing associations for objects of these types. Furthermore, the exact types of objects to which this caveat applies differs between implementations. For instance, some implementations may automatically clear associations only for big exact integers and exact rationals, whereas other implementations may also do so for all inexact numbers.</p>
 <p>This document uses the <code>hashtable</code> parameter name for arguments that must be hashtables, and the <code>key</code> parameter name for arguments that must be hashtable keys.</p>
 <h3 id="constructors">Constructors</h3>
 <ul>
