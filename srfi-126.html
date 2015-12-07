@@ -62,6 +62,9 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p><em>Rationale:</em> While the semantics of weak-key and weak-value hashtables is undesired, their implementation might be more efficient than ephemeral-key and ephemeral-value hashtables.</p>
 <p>Ephemeral-key-and-value hashtables use a pair of ephemeral storage pairs for each association: one where the key is the first object and one where the value is. This means that the key and value are protected from reclamation until no references remain to neither the key nor value from outside the hashtable. In contrast, a weak-key-and-value hashtable will delete an association as soon as either the key or value is reclaimed.</p>
 <p>Support for all types of weak and ephemeral hashtables is optional.</p>
+<p>Booleans, characters, numbers, symbols, and the empty list are recommended, but not required, to never be stored weakly or ephemerally.</p>
+<p><em>Rationale:</em> Objects of these types can be recreated arbitrarily, such that a new instance is equivalent (as per <code>eqv?</code>) to a previous instance, even if the previous instance was deallocated and the new instance allocated freshly. Therefore objects of these types must be considered alive at all times even if no references remain to them in a program.</p>
+<p><em>Warning:</em> In portable code, one may neither rely on weak hashtables keeping associations for objects of these types at absence of other references to the object, nor may one rely on the hashtable automatically clearing associations for objects of these types. Furthermore, the exact types of objects to which this caveat applies differs between implementations. For instance, some implementations may automatically clear associations only for big exact integers and exact rationals, whereas other implementations may also do so for all inexact numbers.</p>
 <p>This document uses the <code>hashtable</code> parameter name for arguments that must be hashtables, and the <code>key</code> parameter name for arguments that must be hashtable keys.</p>
 <h3 id="constructors">Constructors</h3>
 <ul>
@@ -76,8 +79,6 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(make-eqv-hashtable capacity weakness)</code></li>
 </ul>
 <p>Returns a newly allocated mutable hashtable that accepts arbitrary objects as keys, and compares those keys with <code>eqv?</code>. The semantics of the optional arguments are as in <code>make-eq-hashtable</code>.</p>
-<p>Booleans, characters, numbers, and symbols are never stored weakly or ephemerally in a hashtable returned by <code>make-eqv-hashtable</code>, regardless of its weakness attribute.</p>
-<p><em>Rationale:</em> The possible allocation and reclamation of instances of these types is an implementation detail. Within the semantics of Scheme, they are considered eternally alive, because a new instance that is <code>eqv?</code> to a previously alive instance may be reallocated at any point in a program.</p>
 <ul>
 <li><code>(make-hashtable hash equiv)</code> <em>procedure</em></li>
 <li><code>(make-hashtable hash equiv capacity)</code></li>

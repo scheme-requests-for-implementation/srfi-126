@@ -171,6 +171,27 @@ either the key or value is reclaimed.
 
 Support for all types of weak and ephemeral hashtables is optional.
 
+Booleans, characters, numbers, symbols, and the empty list are
+recommended, but not required, to never be stored weakly or
+ephemerally.
+
+*Rationale:* Objects of these types can be recreated arbitrarily, such
+that a new instance is equivalent (as per `eqv?`) to a previous
+instance, even if the previous instance was deallocated and the new
+instance allocated freshly.  Therefore objects of these types must be
+considered alive at all times even if no references remain to them in
+a program.
+
+*Warning:* In portable code, one may neither rely on weak hashtables
+keeping associations for objects of these types at absence of other
+references to the object, nor may one rely on the hashtable
+automatically clearing associations for objects of these types.
+Furthermore, the exact types of objects to which this caveat applies
+differs between implementations.  For instance, some implementations
+may automatically clear associations only for big exact integers and
+exact rationals, whereas other implementations may also do so for all
+inexact numbers.
+
 This document uses the `hashtable` parameter name for arguments that
 must be hashtables, and the `key` parameter name for arguments that
 must be hashtable keys.
@@ -202,16 +223,6 @@ is used.
 Returns a newly allocated mutable hashtable that accepts arbitrary
 objects as keys, and compares those keys with `eqv?`.  The semantics
 of the optional arguments are as in `make-eq-hashtable`.
-
-Booleans, characters, numbers, and symbols are never stored weakly or
-ephemerally in a hashtable returned by `make-eqv-hashtable`,
-regardless of its weakness attribute.
-
-*Rationale:* The possible allocation and reclamation of instances of
-these types is an implementation detail.  Within the semantics of
-Scheme, they are considered eternally alive, because a new instance
-that is `eqv?` to a previously alive instance may be reallocated at
-any point in a program.
 
 - `(make-hashtable hash equiv)` *procedure*
 - `(make-hashtable hash equiv capacity)`
