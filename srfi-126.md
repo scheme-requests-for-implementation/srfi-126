@@ -30,6 +30,7 @@ You can access previous messages via the mailing list
   - Draft #7 published: 2015/10/6
   - Draft #8 published: 2015/10/10
   - Draft #9 published: 2015/11/12
+  - Draft #10 published: 2015/12/7
 
 Abstract
 --------
