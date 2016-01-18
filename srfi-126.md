@@ -701,137 +701,14 @@ Implementation
 
 Larceny Scheme contains a portable implementation of the R6RS
 hashtables API as an R7RS library.  It is included in the version
-control repository of this SRFI.
+control repository of this SRFI under `r6rs/hashtables.sld`.
 
-The alist constructors can be implemented trivially as seen in the
-piece of code describing their semantics.  Here is a complete
-definition of `alist->eq-hashtable`:
-
-    (define alist->eq-hashtable
-      (case-lambda
-        ((alist) (alist->eq-hashtable #f #f alist))
-        ((capacity alist) (alist->eq-hashtable capacity #f alist))
-        ((capacity weakness alist)
-         (let ((ht (make-eq-hashtable capacity weakness)))
-           (for-each (lambda (entry)
-                       (hashtable-set! ht (car entry) (cdr entry)))
-                     alist)
-           ht))))
-
-The `hashtable-lookup` and `hashtable-intern!` procedures are trivial
-to implement, although it's desirable that they be implemented more
-efficiently at the platform level:
-
-    (define (hashtable-lookup ht key)
-      (if (hashtable-contains? key)
-          (values (hashtable-ref ht key #f) #t)
-          (values #f #f)))
-
-    (define (hashtable-intern! ht key default-proc)
-      (if (hashtable-contains? key)
-          (hashtable-ref ht key)
-          (let ((value (default-proc)))
-            (hashtable-set! ht key value)
-            value)))
-
-The `hashtable-empty-copy` procedure can be implemented as follows:
-
-    (define hashtable-empty-copy
-      (case-lambda
-        ((hashtable) (hashtable-empty-copy hashtable #f))
-        ((hashtable capacity)
-         (make-hashtable (hashtable-hash-function hashtable)
-                         (hashtable-equivalence-function hashtable)
-                         (if (eq? #t capacity)
-                             (hashtable-size hashtable)
-                             capacity)
-                         (hashtable-weakness hashtable)))))
-
-The `hashtable-values`, `hashtable-walk`, `hashtable-update-all!`, and
-`hashtable-prune!` procedures are simple to implement in terms of
-`hashtable-entries`, but it is desirable that they be implemented more
-efficiently at the platform level.
-
-    (define (hashtable-values ht)
-      (let-values (((keys values) (hashtable-entries ht)))
-        values))
-
-    (define (hashtable-walk ht proc)
-      (let-values (((keys values) (hashtable-entries ht)))
-        (vector-for-each proc keys values)))
-
-    (define (hashtable-update-all! ht proc)
-      (let-values (((keys values) (hashtable-entries ht)))
-        (vector-for-each (lambda (key value)
-                           (hashtable-set! ht key (proc key value)))
-                         keys values)))
-
-    (define (hashtable-prune! ht proc)
-      (let-values (((keys values) (hashtable-entries ht)))
-        (vector-for-each (lambda (key value)
-                           (when (proc key value)
-                             (hashtable-delete! key)))
-                         keys values)))
-
-The `hashtable-merge!` procedure can be implemented as seen in its
-specification.
-
-The `hashtable-sum` procedure could be implemented in terms of
-`hashtable-entries`, `vector->list`, and `fold`, but it is definitely
-desirable to implement it more efficiently.  Given an efficient
-`hashtable-sum`, the following definitions can be used:
-
-    (define (hashtable-map->lset ht proc)
-      (hashtable-sum ht '()
-        (lambda (key value acc)
-          (cons (proc key value) acc))))
-
-    (define (hashtable-key-list ht)
-      (hashtable-map->lset ht (lambda (key value) key)))
-
-    (define (hashtable-value-list ht)
-      (hashtable-map->lset ht (lambda (key value) value)))
-
-The `hashtable-entry-lists` procedure is simple to implement in terms
-of `hashtable-walk`.
-
-    (define (hashtable-entry-lists ht)
-      (let ((keys '())
-            (vals '()))
-        (hashtable-walk ht
-          (lambda (key val)
-            (set! keys (cons key keys))
-            (set! vals (cons val vals))))
-        (values keys vals)))
-
-The `hashtable-find` procedure is simple to implement in terms of
-`hashtable-entries`, but it is desirable that it be implemented more
-efficiently at the platform level.
-
-    (define (hashtable-find ht proc)
-      (let* ((alist (hashtable-map->lset ht cons))
-             (found (find (lambda (pair)
-                            (proc (car pair) (cdr pair)))
-                          alist)))
-        (if found
-            (values (car found) (cdr found) #t)
-            (values #f #f #f))))
-
-If an implementation supports efficient escape continuations and an
-efficient `hashtable-walk`, those can be used to implement an
-efficient `hashtable-find`:
-
-    (define (hashtable-find ht proc)
-      (let-escape-continuation return
-        (hashtable-walk ht
-          (lambda (key value)
-            (when (proc key value)
-              (return key value #t))))
-        (return #f #f #f)))
-
-The `hashtable-empty?`, `hashtable-pop!`, `hashtable-inc!`, and
-`hashtable-dec!` procedures can be implemented as seen in their
-specifications.
+A straightforward implementation of this SRFI as an R6RS library is
+included in the version control repository under `srfi/:126.sls`, and
+an R7RS wrapper under `srfi/126.sld`.  This implementation lacks weak
+and ephemeral hashtables and external representation, and some
+procedures are implemented inefficiently since there is no access to
+the underlying mechanics of the hashtables.
 
 Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the
