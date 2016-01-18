@@ -362,11 +362,11 @@
               (else
                (error "Unrecognized hash subtype." subtype)))))))))))
 
-;;; Local Variables:
-;;; eval: (put 'hashtable-walk 'scheme-indent-function 1)
-;;; eval: (put 'hashtable-update-all! 'scheme-indent-function 1)
-;;; eval: (put 'hashtable-prune! 'scheme-indent-function 1)
-;;; eval: (put 'hashtable-merge! 'scheme-indent-function 1)
-;;; eval: (put 'hashtable-sum 'scheme-indent-function 2)
-;;; eval: (put 'hashtable-map->lset 'scheme-indent-function 1)
-;;; End:
+;; Local Variables:
+;; eval: (put 'hashtable-walk 'scheme-indent-function 1)
+;; eval: (put 'hashtable-update-all! 'scheme-indent-function 1)
+;; eval: (put 'hashtable-prune! 'scheme-indent-function 1)
+;; eval: (put 'hashtable-sum 'scheme-indent-function 2)
+;; eval: (put 'hashtable-map->lset 'scheme-indent-function 1)
+;; eval: (put 'hashtable-find 'scheme-indent-function 1)
+;; End:
