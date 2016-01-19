@@ -305,9 +305,9 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>The <code>equal-hash</code>, <code>string-hash</code>, and <code>string-ci-hash</code> procedures of this section are acceptable as the hash functions of a hashtable only if the keys on which they are called are not mutated while they remain in use as keys in the hashtable.</p>
 <p>An implementation may initialize its hash functions with a random salt value at program startup, meaning they are not guaranteed to return the same values for the same inputs across multiple runs of a program. If however the environment variable <code>SRFI_126_HASH_SEED</code> is set to a non-empty string before program startup, then the salt value is derived from that string in a deterministic manner.</p>
 <ul>
-<li><code>(hash-salt)</code> <em>procedure</em></li>
+<li><code>(hash-salt)</code> <em>syntax</em></li>
 </ul>
-<p>Returns a global and constant salt value for use in hash functions. This is a random value for every run of the program, except when the environment variable <code>SRFI_126_HASH_SEED</code> is set to a non-empty string before program startup.</p>
+<p>Expands to an exact non-negative integer that lies within the fixnum range of the implementation. The value that is expanded to remains constant throughout the execution of the program. It is initialized randomly for every run of the program, except when the environment variable <code>SRFI_126_HASH_SEED</code> is set to a non-empty string before program startup, in which case it is derived from the value of that environment variable in a deterministic manner.</p>
 <ul>
 <li><code>(equal-hash obj)</code> <em>procedure</em></li>
 </ul>

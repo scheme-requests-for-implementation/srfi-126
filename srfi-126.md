@@ -656,12 +656,15 @@ If however the environment variable `SRFI_126_HASH_SEED` is set to a
 non-empty string before program startup, then the salt value is
 derived from that string in a deterministic manner.
 
-- `(hash-salt)` *procedure*
+- `(hash-salt)` *syntax*
 
-Returns a global and constant salt value for use in hash functions.
-This is a random value for every run of the program, except when the
-environment variable `SRFI_126_HASH_SEED` is set to a non-empty string
-before program startup.
+Expands to an exact non-negative integer that lies within the fixnum
+range of the implementation.  The value that is expanded to remains
+constant throughout the execution of the program.  It is initialized
+randomly for every run of the program, except when the environment
+variable `SRFI_126_HASH_SEED` is set to a non-empty string before
+program startup, in which case it is derived from the value of that
+environment variable in a deterministic manner.
 
 - `(equal-hash obj)` *procedure*
 
