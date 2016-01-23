@@ -1,3 +1,5 @@
+;;; Guile implementation.
+
 (define-module (srfi srfi-126))
 
 (use-modules
@@ -25,8 +27,10 @@
  hashtable-empty? hashtable-pop! hashtable-inc! hashtable-dec!
  hashtable-equivalence-function hashtable-hash-function
  hashtable-weakness hashtable-mutable?
- hash-salt equal-hash string-hash string-ci-hash symbol-hash
+ hash-salt
  )
+
+(re-export equal-hash string-hash string-ci-hash symbol-hash)
 
 (define-record-type <hashtable>
   (%make-hashtable %table %hash %assoc hash equiv weakness mutable)
