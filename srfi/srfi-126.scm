@@ -151,14 +151,16 @@
         (values #f #f)
         (values val #t))))
 
-(define (hashtable-update! ht key updater default)
+(define* (hashtable-update! ht key updater #:optional (default nil))
   (assert-mutable ht)
   (let ((handle (hashx-create-handle!
                  (%hashtable-hash ht) (%hashtable-assoc ht)
                  (%hashtable-table ht) key nil)))
-    (set-cdr! handle (updater (if (eq? nil (cdr handle))
-                                  default
-                                  (cdr handle))))
+    (if (eq? nil (cdr handle))
+        (if (nil? default)
+            (error "No association for key in hashtable." key ht)
+            (set-cdr! handle (updater default)))
+        (set-cdr! handle (updater (cdr handle))))
     (cdr handle)))
 
 (define (hashtable-intern! ht key default-proc)
