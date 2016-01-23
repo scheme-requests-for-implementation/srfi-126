@@ -396,14 +396,18 @@ Returns two values: the value in `hashtable` associated with `key` or
 an unspecified value if there is none, and a Boolean indicating
 whether an association was found.
 
-- `(hashtable-update! hashtable key proc default)` *procedure*
+- `(hashtable-update! hashtable key proc)` *procedure*
+- `(hashtable-update! hashtable key proc default)`
 
 `Proc` should accept one argument, should return a single value, and
 should not mutate `hashtable`.  The `hashtable-update!` procedure
 applies `proc` to the value in `hashtable` associated with `key`, or
 to `default` if `hashtable` does not contain an association for `key`.
 The hashtable is then changed to associate `key` with the value
-returned by `proc`, and the value returned by `hashtable-update!`.
+returned by `proc`.  If `hashtable` does not contain an association
+for `key` and the `default` argument is not provided, an error should
+be signaled.  `Hashtable-update!` returns the value of the new
+association for `key` in `hashtable`.
 
 - `(hashtable-intern! hashtable key default-proc)` *procedure*
 
