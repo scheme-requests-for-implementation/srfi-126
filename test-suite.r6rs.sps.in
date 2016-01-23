@@ -1,0 +1,14 @@
+#!r6rs                                  ;-*- mode: scheme -*-
+
+(import
+ (rnrs base)
+ (rnrs control)
+ (rnrs io simple)
+ (only (srfi :1) lset= lset-adjoin)
+ (srfi :64)
+ (srfi :126))
+
+(define (exact-integer? obj)
+  (and (integer? obj) (exact? obj)))
+
+;; INCLUDE test-suite.body.scm
