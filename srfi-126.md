@@ -631,7 +631,7 @@ a hashing strategy involving a pair of hash functions may return a
 pair of procedures even when a single procedure was passed to
 `make-hashtable`.  In any case, all values returned by this procedure
 are suitable for the `hash` argument of `make-hashtable` and must
-return in a hashtable with equivalent hashing behavior.
+result in a hashtable with equivalent hashing behavior.
 
 - `(hashtable-weakness hashtable)` *procedure*
 

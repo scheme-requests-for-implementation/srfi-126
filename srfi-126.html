@@ -294,7 +294,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <li><code>(hashtable-hash-function hashtable)</code> <em>procedure</em></li>
 </ul>
 <p>Returns the hash function(s) used by <code>hashtable</code>, that is, either a procedure, or a pair of procedures. For hashtables created by <code>make-eq-hashtable</code> or <code>make-eqv-hashtable</code>, <code>#f</code> is returned.</p>
-<p><em>Note:</em> Implementations using a hashing strategy that involves a single hash function may return a single procedure even when a pair of procedures was passed to <code>make-hashtable</code>. Implementations preferring a hashing strategy involving a pair of hash functions may return a pair of procedures even when a single procedure was passed to <code>make-hashtable</code>. In any case, all values returned by this procedure are suitable for the <code>hash</code> argument of <code>make-hashtable</code> and must return in a hashtable with equivalent hashing behavior.</p>
+<p><em>Note:</em> Implementations using a hashing strategy that involves a single hash function may return a single procedure even when a pair of procedures was passed to <code>make-hashtable</code>. Implementations preferring a hashing strategy involving a pair of hash functions may return a pair of procedures even when a single procedure was passed to <code>make-hashtable</code>. In any case, all values returned by this procedure are suitable for the <code>hash</code> argument of <code>make-hashtable</code> and must result in a hashtable with equivalent hashing behavior.</p>
 <ul>
 <li><code>(hashtable-weakness hashtable)</code> <em>procedure</em></li>
 </ul>
