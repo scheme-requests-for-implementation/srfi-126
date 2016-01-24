@@ -168,9 +168,10 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p>Returns two values: the value in <code>hashtable</code> associated with <code>key</code> or an unspecified value if there is none, and a Boolean indicating whether an association was found.</p>
 <ul>
-<li><code>(hashtable-update! hashtable key proc default)</code> <em>procedure</em></li>
+<li><code>(hashtable-update! hashtable key proc)</code> <em>procedure</em></li>
+<li><code>(hashtable-update! hashtable key proc default)</code></li>
 </ul>
-<p><code>Proc</code> should accept one argument, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-update!</code> procedure applies <code>proc</code> to the value in <code>hashtable</code> associated with <code>key</code>, or to <code>default</code> if <code>hashtable</code> does not contain an association for <code>key</code>. The hashtable is then changed to associate <code>key</code> with the value returned by <code>proc</code>, and the value returned by <code>hashtable-update!</code>.</p>
+<p><code>Proc</code> should accept one argument, should return a single value, and should not mutate <code>hashtable</code>. The <code>hashtable-update!</code> procedure applies <code>proc</code> to the value in <code>hashtable</code> associated with <code>key</code>, or to <code>default</code> if <code>hashtable</code> does not contain an association for <code>key</code>. The hashtable is then changed to associate <code>key</code> with the value returned by <code>proc</code>. If <code>hashtable</code> does not contain an association for <code>key</code> and the <code>default</code> argument is not provided, an error should be signaled. <code>Hashtable-update!</code> returns the value of the new association for <code>key</code> in <code>hashtable</code>.</p>
 <ul>
 <li><code>(hashtable-intern! hashtable key default-proc)</code> <em>procedure</em></li>
 </ul>
@@ -305,9 +306,9 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <p>The <code>equal-hash</code>, <code>string-hash</code>, and <code>string-ci-hash</code> procedures of this section are acceptable as the hash functions of a hashtable only if the keys on which they are called are not mutated while they remain in use as keys in the hashtable.</p>
 <p>An implementation may initialize its hash functions with a random salt value at program startup, meaning they are not guaranteed to return the same values for the same inputs across multiple runs of a program. If however the environment variable <code>SRFI_126_HASH_SEED</code> is set to a non-empty string before program startup, then the salt value is derived from that string in a deterministic manner.</p>
 <ul>
-<li><code>(hash-salt)</code> <em>procedure</em></li>
+<li><code>(hash-salt)</code> <em>syntax</em></li>
 </ul>
-<p>Returns a global and constant salt value for use in hash functions. This is a random value for every run of the program, except when the environment variable <code>SRFI_126_HASH_SEED</code> is set to a non-empty string before program startup.</p>
+<p>Expands to an exact non-negative integer that lies within the fixnum range of the implementation. The value that is expanded to remains constant throughout the execution of the program. It is initialized randomly for every run of the program, except when the environment variable <code>SRFI_126_HASH_SEED</code> is set to a non-empty string before program startup, in which case it is derived from the value of that environment variable in a deterministic manner.</p>
 <ul>
 <li><code>(equal-hash obj)</code> <em>procedure</em></li>
 </ul>
@@ -326,104 +327,11 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 </ul>
 <p>Returns an integer hash value for <code>symbol</code>.</p>
 <h2 id="implementation">Implementation</h2>
-<p>Larceny Scheme contains a portable implementation of the R6RS hashtables API as an R7RS library. It is included in the version control repository of this SRFI.</p>
-<p>The alist constructors can be implemented trivially as seen in the piece of code describing their semantics. Here is a complete definition of <code>alist-&gt;eq-hashtable</code>:</p>
-<pre><code>(define alist-&gt;eq-hashtable
-  (case-lambda
-    ((alist) (alist-&gt;eq-hashtable #f #f alist))
-    ((capacity alist) (alist-&gt;eq-hashtable capacity #f alist))
-    ((capacity weakness alist)
-     (let ((ht (make-eq-hashtable capacity weakness)))
-       (for-each (lambda (entry)
-                   (hashtable-set! ht (car entry) (cdr entry)))
-                 alist)
-       ht))))</code></pre>
-<p>The <code>hashtable-lookup</code> and <code>hashtable-intern!</code> procedures are trivial to implement, although it's desirable that they be implemented more efficiently at the platform level:</p>
-<pre><code>(define (hashtable-lookup ht key)
-  (if (hashtable-contains? key)
-      (values (hashtable-ref ht key #f) #t)
-      (values #f #f)))
-
-(define (hashtable-intern! ht key default-proc)
-  (if (hashtable-contains? key)
-      (hashtable-ref ht key)
-      (let ((value (default-proc)))
-        (hashtable-set! ht key value)
-        value)))</code></pre>
-<p>The <code>hashtable-empty-copy</code> procedure can be implemented as follows:</p>
-<pre><code>(define hashtable-empty-copy
-  (case-lambda
-    ((hashtable) (hashtable-empty-copy hashtable #f))
-    ((hashtable capacity)
-     (make-hashtable (hashtable-hash-function hashtable)
-                     (hashtable-equivalence-function hashtable)
-                     (if (eq? #t capacity)
-                         (hashtable-size hashtable)
-                         capacity)
-                     (hashtable-weakness hashtable)))))</code></pre>
-<p>The <code>hashtable-values</code>, <code>hashtable-walk</code>, <code>hashtable-update-all!</code>, and <code>hashtable-prune!</code> procedures are simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that they be implemented more efficiently at the platform level.</p>
-<pre><code>(define (hashtable-values ht)
-  (let-values (((keys values) (hashtable-entries ht)))
-    values))
-
-(define (hashtable-walk ht proc)
-  (let-values (((keys values) (hashtable-entries ht)))
-    (vector-for-each proc keys values)))
-
-(define (hashtable-update-all! ht proc)
-  (let-values (((keys values) (hashtable-entries ht)))
-    (vector-for-each (lambda (key value)
-                       (hashtable-set! ht key (proc key value)))
-                     keys values)))
-
-(define (hashtable-prune! ht proc)
-  (let-values (((keys values) (hashtable-entries ht)))
-    (vector-for-each (lambda (key value)
-                       (when (proc key value)
-                         (hashtable-delete! key)))
-                     keys values)))</code></pre>
-<p>The <code>hashtable-merge!</code> procedure can be implemented as seen in its specification.</p>
-<p>The <code>hashtable-sum</code> procedure could be implemented in terms of <code>hashtable-entries</code>, <code>vector-&gt;list</code>, and <code>fold</code>, but it is definitely desirable to implement it more efficiently. Given an efficient <code>hashtable-sum</code>, the following definitions can be used:</p>
-<pre><code>(define (hashtable-map-&gt;lset ht proc)
-  (hashtable-sum ht &#39;()
-    (lambda (key value acc)
-      (cons (proc key value) acc))))
-
-(define (hashtable-key-list ht)
-  (hashtable-map-&gt;lset ht (lambda (key value) key)))
-
-(define (hashtable-value-list ht)
-  (hashtable-map-&gt;lset ht (lambda (key value) value)))</code></pre>
-<p>The <code>hashtable-entry-lists</code> procedure is simple to implement in terms of <code>hashtable-walk</code>.</p>
-<pre><code>(define (hashtable-entry-lists ht)
-  (let ((keys &#39;())
-        (vals &#39;()))
-    (hashtable-walk ht
-      (lambda (key val)
-        (set! keys (cons key keys))
-        (set! vals (cons val vals))))
-    (values keys vals)))</code></pre>
-<p>The <code>hashtable-find</code> procedure is simple to implement in terms of <code>hashtable-entries</code>, but it is desirable that it be implemented more efficiently at the platform level.</p>
-<pre><code>(define (hashtable-find ht proc)
-  (let* ((alist (hashtable-map-&gt;lset ht cons))
-         (found (find (lambda (pair)
-                        (proc (car pair) (cdr pair)))
-                      alist)))
-    (if found
-        (values (car found) (cdr found) #t)
-        (values #f #f #f))))</code></pre>
-<p>If an implementation supports efficient escape continuations and an efficient <code>hashtable-walk</code>, those can be used to implement an efficient <code>hashtable-find</code>:</p>
-<pre><code>(define (hashtable-find ht proc)
-  (let-escape-continuation return
-    (hashtable-walk ht
-      (lambda (key value)
-        (when (proc key value)
-          (return key value #t))))
-    (return #f #f #f)))</code></pre>
-<p>The <code>hashtable-empty?</code>, <code>hashtable-pop!</code>, <code>hashtable-inc!</code>, and <code>hashtable-dec!</code> procedures can be implemented as seen in their specifications.</p>
+<p>Larceny Scheme contains a portable implementation of the R6RS hashtables API as an R7RS library. It is included in the version control repository of this SRFI under <code>r6rs/hashtables.sld</code>.</p>
+<p>A straightforward implementation of this SRFI as an R6RS library is included in the version control repository under <code>srfi/:126.sls</code>, and an R7RS wrapper under <code>srfi/126.sld</code>. This implementation lacks weak and ephemeral hashtables and external representation, and some procedures are implemented inefficiently since there is no access to the underlying mechanics of the hashtables.</p>
 <p>Weak and ephemeral hashtables cannot be implemented by portable library code. They need to be implemented either directly at the platform level, or by using functionality which in turn needs to be implemented at the platform level, such as weak and ephemeral pairs. See MIT/GNU Scheme for an example.</p>
 <p>External representation cannot be implemented by portable library code.</p>
-<p>A sample implementation for GNU Guile is found within the source control repository of this SRFI. It represents hash tables as an SRFI-9 record for simplicity (using an opaque R6RS record type would have fulfilled the requirement of the hashtable type being disjoint), installs external representation support into the Guile runtime when the library is loaded (without <code>quasiquote</code> integration), and supports all types of weakness which Guile has native support for. This is achieved in approximately 350 lines of library code.</p>
+<p>A sample implementation for GNU Guile is included in the source control repository under <code>srfi/srfi-126.scm</code>. It installs external representation support into the Guile runtime when the library is loaded (without <code>quasiquote</code> integration), and supports all types of weakness which Guile has native support for. This is achieved in approximately 350 lines of library code.</p>
 <h2 id="acknowledgments">Acknowledgments</h2>
 <p>Thanks to Taylor Campbell and MIT/GNU Scheme for inspiring the idea of weak and ephemeral hashtables, some miscellaneous procedures, and overall input in the design of this SRFI.</p>
 <p>Thanks to Mark Weaver for his review of and comments on the SRFI, which had substantial effect on the result.</p>

@@ -1,3 +1,5 @@
+;;; Guile implementation.
+
 (define-module (srfi srfi-126))
 
 (use-modules
@@ -25,8 +27,10 @@
  hashtable-empty? hashtable-pop! hashtable-inc! hashtable-dec!
  hashtable-equivalence-function hashtable-hash-function
  hashtable-weakness hashtable-mutable?
- hash-salt equal-hash string-hash string-ci-hash symbol-hash
+ hash-salt
  )
+
+(re-export equal-hash string-hash string-ci-hash symbol-hash)
 
 (define-record-type <hashtable>
   (%make-hashtable %table %hash %assoc hash equiv weakness mutable)
@@ -147,14 +151,16 @@
         (values #f #f)
         (values val #t))))
 
-(define (hashtable-update! ht key updater default)
+(define* (hashtable-update! ht key updater #:optional (default nil))
   (assert-mutable ht)
   (let ((handle (hashx-create-handle!
                  (%hashtable-hash ht) (%hashtable-assoc ht)
                  (%hashtable-table ht) key nil)))
-    (set-cdr! handle (updater (if (eq? nil (cdr handle))
-                                  default
-                                  (cdr handle))))
+    (if (eq? nil (cdr handle))
+        (if (nil? default)
+            (error "No association for key in hashtable." key ht)
+            (set-cdr! handle (updater default)))
+        (set-cdr! handle (updater (cdr handle))))
     (cdr handle)))
 
 (define (hashtable-intern! ht key default-proc)
@@ -362,11 +368,11 @@
               (else
                (error "Unrecognized hash subtype." subtype)))))))))))
 
-;;; Local Variables:
-;;; eval: (put 'hashtable-walk 'scheme-indent-function 1)
-;;; eval: (put 'hashtable-update-all! 'scheme-indent-function 1)
-;;; eval: (put 'hashtable-prune! 'scheme-indent-function 1)
-;;; eval: (put 'hashtable-merge! 'scheme-indent-function 1)
-;;; eval: (put 'hashtable-sum 'scheme-indent-function 2)
-;;; eval: (put 'hashtable-map->lset 'scheme-indent-function 1)
-;;; End:
+;; Local Variables:
+;; eval: (put 'hashtable-walk 'scheme-indent-function 1)
+;; eval: (put 'hashtable-update-all! 'scheme-indent-function 1)
+;; eval: (put 'hashtable-prune! 'scheme-indent-function 1)
+;; eval: (put 'hashtable-sum 'scheme-indent-function 2)
+;; eval: (put 'hashtable-map->lset 'scheme-indent-function 1)
+;; eval: (put 'hashtable-find 'scheme-indent-function 1)
+;; End:
