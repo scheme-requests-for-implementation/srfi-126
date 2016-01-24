@@ -750,7 +750,7 @@ extensive input that helped shape this SRFI.
 Copyright and license
 ---------------------
 
-Copyright (C) Taylan Ulrich Bayırlı/Kammer (2015). All Rights Reserved.
+Copyright (C) Taylan Ulrich Bayırlı/Kammer (2015, 2016). All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
