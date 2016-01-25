@@ -32,6 +32,7 @@ You can access previous messages via the mailing list
   - Draft #9 published: 2015/11/12
   - Draft #10 published: 2015/12/7
   - Draft #11 published: 2016/1/23
+  - Draft #12 published: 2016/1/24
 
 Abstract
 --------
