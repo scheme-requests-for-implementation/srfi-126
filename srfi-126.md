@@ -631,7 +631,7 @@ a hashing strategy involving a pair of hash functions may return a
 pair of procedures even when a single procedure was passed to
 `make-hashtable`.  In any case, all values returned by this procedure
 are suitable for the `hash` argument of `make-hashtable` and must
-return in a hashtable with equivalent hashing behavior.
+result in a hashtable with equivalent hashing behavior.
 
 - `(hashtable-weakness hashtable)` *procedure*
 
@@ -706,10 +706,12 @@ control repository of this SRFI under `r6rs/hashtables.sld`.
 
 A straightforward implementation of this SRFI as an R6RS library is
 included in the version control repository under `srfi/:126.sls`, and
-an R7RS wrapper under `srfi/126.sld`.  This implementation lacks weak
-and ephemeral hashtables and external representation, and some
-procedures are implemented inefficiently since there is no access to
-the underlying mechanics of the hashtables.
+an R7RS variant under `srfi/126.sld`.  (The R6RS and R7RS libraries
+use the same body of code, with different library boilerplate.)  The
+implementation lacks weak and ephemeral hashtables and external
+representation, and some procedures are implemented inefficiently
+since there is no access to the underlying mechanics of the
+hashtables.
 
 Weak and ephemeral hashtables cannot be implemented by portable
 library code.  They need to be implemented either directly at the
@@ -720,7 +722,7 @@ See MIT/GNU Scheme for an example.
 External representation cannot be implemented by portable library
 code.
 
-A sample implementation for GNU Guile is included in the source
+A sample implementation for GNU Guile is included in the version
 control repository under `srfi/srfi-126.scm`.  It installs external
 representation support into the Guile runtime when the library is
 loaded (without `quasiquote` integration), and supports all types of
@@ -748,7 +750,7 @@ extensive input that helped shape this SRFI.
 Copyright and license
 ---------------------
 
-Copyright (C) Taylan Ulrich Bayırlı/Kammer (2015). All Rights Reserved.
+Copyright (C) Taylan Ulrich Bayırlı/Kammer (2015, 2016). All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
