@@ -275,7 +275,7 @@ The semantics of this procedure can be described as:
     (let ((ht (make-eq-hashtable capacity weakness)))
       (for-each (lambda (entry)
                   (hashtable-set! ht (car entry) (cdr entry)))
-                alist)
+                (reverse alist))
       ht)
 
 where omission of the `capacity` and/or `weakness` arguments
