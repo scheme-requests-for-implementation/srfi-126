@@ -102,7 +102,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <pre><code>(let ((ht (make-eq-hashtable capacity weakness)))
   (for-each (lambda (entry)
               (hashtable-set! ht (car entry) (cdr entry)))
-            alist)
+            (reverse alist))
   ht)</code></pre>
 <p>where omission of the <code>capacity</code> and/or <code>weakness</code> arguments corresponds to their omission in the call to <code>make-eq-hashtable</code>.</p>
 <ul>

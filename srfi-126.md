@@ -9,7 +9,7 @@ Taylan Ulrich Bayırlı/Kammer, taylanbayirli at Google Mail
 Status
 ------
 
-This SRFI is currently in <em>draft</em> status.  Here is
+This SRFI is currently in <em>final</em> status.  Here is
 [an explanation](http://srfi.schemers.org/srfi-process.html) of each
 status that a SRFI can hold.  To provide input on this SRFI, please
 send email to <code><a href="mailto:srfi minus 126 at srfi dot
@@ -33,6 +33,7 @@ You can access previous messages via the mailing list
   - Draft #10 published: 2015/12/7
   - Draft #11 published: 2016/1/23
   - Draft #12 published: 2016/1/24
+  - Finalized: 2016/2/1
 
 Abstract
 --------
@@ -274,7 +275,7 @@ The semantics of this procedure can be described as:
     (let ((ht (make-eq-hashtable capacity weakness)))
       (for-each (lambda (entry)
                   (hashtable-set! ht (car entry) (cdr entry)))
-                alist)
+                (reverse alist))
       ht)
 
 where omission of the `capacity` and/or `weakness` arguments
