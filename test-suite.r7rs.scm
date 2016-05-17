@@ -71,7 +71,18 @@
         (let ((hash (hashtable-hash-function table)))
           (test-assert (or (eq? equal-hash hash)
                            (and (eq? equal-hash (car hash))
-                                (eq? equal-hash (cdr hash))))))))))
+                                (eq? equal-hash (cdr hash)))))))))
+  (test-group "alist"
+    (let ((tables (list (alist->eq-hashtable '((a . b) (a . c)))
+                        (alist->eqv-hashtable '((a . b) (a . c)))
+                        (alist->hashtable equal-hash equal?
+                                          '((a . b) (a . c))))))
+      (do ((tables tables (cdr tables))
+           (i 0 (+ i 1)))
+          ((null? tables))
+        (let ((table (car tables))
+              (label (number->string i)))
+          (test-eq label 'b (hashtable-ref table 'a)))))))
 
 (test-group "procedures"
   (test-group "basics"
