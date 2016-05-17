@@ -312,7 +312,7 @@ class="antispam">nospam</span>srfi.schemers.org</a></code>. To subscribe to the 
 <ul>
 <li><code>(hash-salt)</code> <em>syntax</em></li>
 </ul>
-<p>Expands to an exact non-negative integer that lies within the fixnum range of the implementation. The value that is expanded to remains constant throughout the execution of the program. It is initialized randomly for every run of the program, except when the environment variable <code>SRFI_126_HASH_SEED</code> is set to a non-empty string before program startup, in which case it is derived from the value of that environment variable in a deterministic manner.</p>
+<p>Expands to a form evaluating to an exact non-negative integer that lies within the fixnum range of the implementation. The value the expanded form evaluates to remains constant throughout the execution of the program. It is random for every run of the program, except when the environment variable <code>SRFI_126_HASH_SEED</code> is set to a non-empty string before program startup, in which case it is derived from the value of that environment variable in a deterministic manner.</p>
 <ul>
 <li><code>(equal-hash obj)</code> <em>procedure</em></li>
 </ul>

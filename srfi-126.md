@@ -666,13 +666,13 @@ derived from that string in a deterministic manner.
 
 - `(hash-salt)` *syntax*
 
-Expands to an exact non-negative integer that lies within the fixnum
-range of the implementation.  The value that is expanded to remains
-constant throughout the execution of the program.  It is initialized
-randomly for every run of the program, except when the environment
-variable `SRFI_126_HASH_SEED` is set to a non-empty string before
-program startup, in which case it is derived from the value of that
-environment variable in a deterministic manner.
+Expands to a form evaluating to an exact non-negative integer that
+lies within the fixnum range of the implementation.  The value the
+expanded form evaluates to remains constant throughout the execution
+of the program.  It is random for every run of the program, except
+when the environment variable `SRFI_126_HASH_SEED` is set to a
+non-empty string before program startup, in which case it is derived
+from the value of that environment variable in a deterministic manner.
 
 - `(equal-hash obj)` *procedure*
 
