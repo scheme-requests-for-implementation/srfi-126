@@ -98,7 +98,7 @@
      (let ((ht (make-hashtable hash equiv capacity weakness)))
        (for-each (lambda (entry)
                    (hashtable-set! ht (car entry) (cdr entry)))
-                 alist)
+                 (reverse alist))
        ht))))
 
 (define-syntax weakness
