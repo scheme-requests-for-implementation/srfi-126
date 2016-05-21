@@ -35,6 +35,7 @@ You can access previous messages via the mailing list
   - Draft #12 published: 2016/1/24
   - Finalized: 2016/2/1
   - Revised to fix errata: 2016/5/12
+  - Revised to fix errata: 2016/5/21
 
 Abstract
 --------
