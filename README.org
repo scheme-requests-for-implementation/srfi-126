@@ -6,6 +6,8 @@ This repository hosts [[https://srfi.schemers.org/srfi-126/][SRFI 126]]: R6RS-ba
 
 This SRFI is in /final/ status.
 
+See also [[https://srfi.schemers.org/srfi-69/][SRFI 69: Basic hash tables]] and [[https://srfi.schemers.org/srfi-125/][SRFI 125: Intermediate hash tables]].
+
 The full documentation for this SRFI can be found in the [[https://srfi.schemers.org/srfi-126/srfi-126.html][SRFI Document]].
 
 If you'd like to participate in the discussion of this SRFI, or report issues with it, please [[shttp://srfi.schemers.org/srfi-126/][join the SRFI-126 mailing list]] and send your message there.
