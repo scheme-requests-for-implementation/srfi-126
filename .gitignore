@@ -1,2 +1,6 @@
+# SPDX-FileCopyrightText: 2015 Arthur A. Gleckler <srfi@speechcode.com>
+#
+# SPDX-License-Identifier: MIT
+
 *~
 *.srfi64.log

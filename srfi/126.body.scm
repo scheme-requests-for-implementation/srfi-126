@@ -1,3 +1,7 @@
+;;; SPDX-FileCopyrightText: 2015 - 2016 Taylan Kammer <taylan.kammer@gmail.com>
+;;;
+;;; SPDX-License-Identifier: MIT
+
 (define make-eq-hashtable
   (case-lambda
     (() (make-eq-hashtable #f #f))

@@ -1,3 +1,7 @@
+;;; SPDX-FileCopyrightText: 2015 - 2016 Taylan Kammer <taylan.kammer@gmail.com>
+;;;
+;;; SPDX-License-Identifier: MIT
+
 ;;; This doesn't test weakness, external representation, and quasiquote.
 
 (test-begin "SRFI-126")

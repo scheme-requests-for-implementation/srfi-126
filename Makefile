@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2015 - 2016 Taylan Kammer <taylan.kammer@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
 all: srfi-126.html \
      srfi/\:126.sls \
      srfi/126.sld \

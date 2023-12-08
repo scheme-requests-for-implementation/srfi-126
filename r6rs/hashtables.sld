@@ -1,3 +1,5 @@
+;;; SPDX-License-Identifier: LicenseRef-Twobit-Larceny
+
 ;; Copyright 1991, 1994, 1998 William D Clinger
 ;; Copyright 1998             Lars T Hansen
 ;; Copyright 1984 - 1993      Lightship Software, Incorporated

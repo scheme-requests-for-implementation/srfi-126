@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2015 - 2016 Taylan Kammer <taylan.kammer@gmail.com>
+
+SPDX-License-Identifier: MIT
+-->
+
 % R6RS-based hashtables
 
 Author

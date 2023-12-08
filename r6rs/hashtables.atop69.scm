@@ -1,3 +1,5 @@
+;;; SPDX-License-Identifier: LicenseRef-Clinger
+
 ;;; Copyright 2015 William D Clinger.
 ;;;
 ;;; Permission to copy this software, in whole or in part, to use this
