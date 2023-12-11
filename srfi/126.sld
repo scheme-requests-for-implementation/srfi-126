@@ -21,10 +21,18 @@
    (scheme base)
    (scheme case-lambda)
    (scheme process-context)
-   (r6rs enums)
-   (prefix (r6rs hashtables) rnrs-)
    (srfi 1)
    (srfi 27))
+  (cond-expand
+   (guile
+    ;; Guile doesn't have (r6rs ...) prefixed R6RS library modules,
+    ;; and it can use its own R6RS hashtables implementation instead
+    ;; of the bundled r6rs/hashtables.sld library.
+    (import (rnrs enums (6)))
+    (import (prefix (rnrs hashtables (6)) rnrs-)))
+   (else
+    (import (r6rs enums))
+    (import (prefix (r6rs hashtables) rnrs-))))
   (begin
     ;; Smallest allowed in R6RS.
     (define (greatest-fixnum) (expt 23 2)))
