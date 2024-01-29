@@ -1,4 +1,7 @@
 #!r6rs                                  ;-*- mode: scheme -*-
+;;; SPDX-FileCopyrightText: 2015 - 2016 Taylan Kammer <taylan.kammer@gmail.com>
+;;;
+;;; SPDX-License-Identifier: MIT
 
 (library (srfi :126)
   (export

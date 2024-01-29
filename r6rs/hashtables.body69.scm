@@ -1,3 +1,5 @@
+;;; SPDX-License-Identifier: MIT
+
 ;;; Reference implementation of SRFI 69, from
 ;;; http://srfi.schemers.org/srfi-69/srfi-69.html
 

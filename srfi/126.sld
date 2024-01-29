@@ -1,3 +1,7 @@
+;;; SPDX-FileCopyrightText: 2015 - 2016 Taylan Kammer <taylan.kammer@gmail.com>
+;;;
+;;; SPDX-License-Identifier: MIT
+
 (define-library (srfi 126)
   (export
    make-eq-hashtable make-eqv-hashtable make-hashtable

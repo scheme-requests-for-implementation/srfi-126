@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2015 - 2021 Arthur A. Gleckler <srfi@speechcode.com>
+#
+# SPDX-License-Identifier: MIT
+
 * SRFI 126: R6RS-based hashtables
 
 ** by Taylan Ulrich Bayırlı/Kammer
