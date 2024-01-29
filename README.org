@@ -1,7 +1,6 @@
-# SPDX-FileCopyrightText: 2015 - 2021 Arthur A. Gleckler <srfi@speechcode.com>
-#
-# SPDX-License-Identifier: MIT
 
+# SPDX-FileCopyrightText: 2024 Taylan Ulrich Bayırlı/Kammer
+# SPDX-License-Identifier: MIT
 * SRFI 126: R6RS-based hashtables
 
 ** by Taylan Ulrich Bayırlı/Kammer
@@ -15,14 +14,11 @@ library-name: r6rs-hashtables
 This repository hosts [[https://srfi.schemers.org/srfi-126/][SRFI 126]]: R6RS-based hashtables, a [[https://srfi.schemers.org/][Scheme Request for Implementation]].
 
 This SRFI is in /final/ status.
-
-See also [[https://srfi.schemers.org/srfi-69/][SRFI 69: Basic hash tables]] and [[https://srfi.schemers.org/srfi-125/][SRFI 125: Intermediate hash tables]].
-
+See also [[/srfi-69/][SRFI 69: Basic hash tables]] and [[/srfi-125/][SRFI 125: Intermediate hash tables]].
 The full documentation for this SRFI can be found in the [[https://srfi.schemers.org/srfi-126/srfi-126.html][SRFI Document]].
 
 If you'd like to participate in the discussion of this SRFI, or report issues with it, please [[https://srfi.schemers.org/srfi-126/][join the SRFI-126 mailing list]] and send your message there.
 
 Thank you.
-
 
 [[mailto:srfi-editors@srfi.schemers.org][The SRFI Editors]]
