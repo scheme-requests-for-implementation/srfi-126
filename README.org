@@ -1,5 +1,5 @@
 
-# SPDX-FileCopyrightText: 2024 Taylan Ulrich Bayırlı/Kammer
+# SPDX-FileCopyrightText: 2024 Arthur A. Gleckler
 # SPDX-License-Identifier: MIT
 * SRFI 126: R6RS-based hashtables
 
